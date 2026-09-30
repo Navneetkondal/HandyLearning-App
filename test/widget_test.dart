@@ -19,7 +19,9 @@ void main() {
 
     // Verify initial Module Cards exist
     final listFinder = find.byType(Scrollable).first;
-    expect(find.text('Basic UI Components'), findsOneWidget);
+    final basicUiFinder = find.text('Basic UI Components');
+    await tester.scrollUntilVisible(basicUiFinder, 100, scrollable: listFinder);
+    expect(basicUiFinder, findsOneWidget);
 
     final stlessFinder = find.text('Stateless vs Stateful');
     await tester.scrollUntilVisible(stlessFinder, 100, scrollable: listFinder);

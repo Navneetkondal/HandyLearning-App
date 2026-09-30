@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/code_snippet_card.dart';
 import '../models/swiftui_lesson.dart';
+import '../../certification/models/certification_models.dart';
+import '../../certification/screens/unified_exam_runner_screen.dart';
 import 'swiftui_rosetta_screen.dart';
 import 'swiftui_state_simulator_screen.dart';
 
@@ -59,6 +61,19 @@ class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const SwiftUiRosettaScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
+            tooltip: 'SwiftUI Certification Exam',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const UnifiedExamRunnerScreen(
+                    track: ExamTrack.swiftui,
+                  ),
+                ),
               );
             },
           ),
@@ -164,6 +179,23 @@ class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
                       },
                       icon: const Icon(Icons.compare_arrows_rounded),
                       label: const Text('Rosetta Stone'),
+                    ),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD4AF37),
+                        foregroundColor: Colors.black87,
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const UnifiedExamRunnerScreen(
+                              track: ExamTrack.swiftui,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.workspace_premium_rounded),
+                      label: const Text('Certification Exam'),
                     ),
                   ],
                 ),

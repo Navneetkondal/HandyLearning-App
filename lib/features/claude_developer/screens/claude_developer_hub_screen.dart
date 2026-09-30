@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../ai_engineering/screens/ai_engineer_roadmap_screen.dart';
+import '../../certification/models/certification_models.dart';
+import '../../certification/screens/unified_exam_runner_screen.dart';
 import '../../claude_certification/screens/claude_curriculum_screen.dart';
-import '../../claude_certification/screens/claude_mock_exam_screen.dart';
 import '../models/claude_developer_topic.dart';
 import 'claude_caching_calculator_screen.dart';
 import 'claude_developer_topic_detail_screen.dart';
@@ -69,12 +71,36 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
         title: const Text('Claude Developer Mastery'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.alt_route_rounded, color: Color(0xFF818CF8)),
+            tooltip: 'AI Engineer & Claude Roadmap',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.school_rounded),
             tooltip: 'Certification Guide',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ClaudeCurriculumScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
+            tooltip: 'Claude Certification Exam',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const UnifiedExamRunnerScreen(
+                    track: ExamTrack.claude,
+                  ),
+                ),
               );
             },
           ),
@@ -210,7 +236,11 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
             onTap: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => const ClaudeMockExamScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const UnifiedExamRunnerScreen(
+                    track: ExamTrack.claude,
+                  ),
+                ),
               );
             },
             child: Container(
@@ -244,6 +274,57 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                     ),
                   ),
                   Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFFD97706)),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 10),
+
+          // AI Engineering from Scratch ➔ Claude Master Banner
+          InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF1E1B4B), const Color(0xFF2E1065)]
+                      : [const Color(0xFFEEF2FF), const Color(0xFFFAF5FF)],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: const Color(0xFF8B5CF6).withAlpha(120),
+                  width: 1.2,
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.alt_route_rounded, color: Color(0xFF8B5CF6), size: 28),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AI Engineering from Scratch Roadmap',
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Child-to-Master progression: 523 lessons across 20 phases & Claude CCDV-F',
+                          style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF8B5CF6)),
                 ],
               ),
             ),

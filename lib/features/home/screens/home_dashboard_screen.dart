@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/theme_cubit.dart';
+import '../../ai_engineering/screens/ai_engineer_roadmap_screen.dart';
+import '../../certification/screens/certifications_hub_screen.dart';
 import '../../challenges/screens/challenges_screen.dart';
 import '../../claude_certification/screens/claude_curriculum_screen.dart';
 import '../../claude_developer/screens/claude_caching_calculator_screen.dart';
@@ -233,6 +235,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         color: const Color(0xFF0284C7),
         screen: const ClaudeCachingCalculatorScreen(),
       ),
+      _LearningModule(
+        trackId: 3,
+        trackName: 'Claude',
+        title: 'Child-to-Master AI Engineer & Claude Roadmap',
+        description:
+            'From-scratch AI algorithms (Backprop, Attention, Tokenizers) to production Claude API, MCP, Subagents, and CCDV-F certification.',
+        icon: Icons.alt_route_rounded,
+        tag: 'Full Roadmap',
+        masteryLevel: 'Master',
+        color: const Color(0xFF6366F1),
+        screen: const AiEngineerRoadmapScreen(),
+      ),
 
       // ------------------------------------------
       // TRACK 4: FLUTTER VS SWIFTUI COMPARISON
@@ -248,6 +262,33 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         masteryLevel: 'Intermediate',
         color: const Color(0xFF6366F1),
         screen: const SwiftUiRosettaScreen(),
+      ),
+      // ------------------------------------------
+      // TRACK 5: CERTIFICATIONS & TIMED MOCK EXAMS
+      // ------------------------------------------
+      _LearningModule(
+        trackId: 5,
+        trackName: 'Certification',
+        title: 'Professional Certifications & Timed Exams',
+        description:
+            'Interactive timed mock exams for Flutter Master, Apple SwiftUI, and Claude Architect. Earn authenticated digital credentials.',
+        icon: Icons.workspace_premium_rounded,
+        tag: 'Credentials',
+        masteryLevel: 'Master',
+        color: const Color(0xFFD4AF37),
+        screen: const CertificationsHubScreen(),
+      ),
+      _LearningModule(
+        trackId: 5,
+        trackName: 'Certification',
+        title: 'AI Engineering from Scratch ➔ Claude Master',
+        description:
+            'Interactive 5-level curriculum linking aiengineeringfromscratch.com, Claude Academy, and official Pearson VUE CCDV-F exams.',
+        icon: Icons.auto_awesome_rounded,
+        tag: 'Curriculum',
+        masteryLevel: 'Master',
+        color: const Color(0xFF8B5CF6),
+        screen: const AiEngineerRoadmapScreen(),
       ),
     ];
 
@@ -293,11 +334,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             },
           ),
           IconButton(
+            icon: const Icon(Icons.alt_route_rounded, color: Color(0xFF818CF8)),
+            tooltip: 'AI Engineer & Claude Mastery Roadmap',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
+              );
+            },
+          ),
+          IconButton(
             icon: const Icon(Icons.co_present_rounded),
             tooltip: 'Lecture Presentation Slides',
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => const LectureSlidesScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
+            tooltip: 'Certification & Exam Center',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CertificationsHubScreen()),
               );
             },
           ),
@@ -382,16 +441,172 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
+
+          // Certification & Exam Center Banner
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const CertificationsHubScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF2B2516), const Color(0xFF1E1A11)]
+                      : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFD4AF37).withAlpha(120),
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFFD4AF37).withAlpha(40),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Color(0xFFD97706),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Text(
+                              'Certification & Exam Center',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFB45309),
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(Icons.verified, size: 14, color: Color(0xFFD97706)),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Timed mock exams for Flutter, SwiftUI & Claude. Earn digital certificates.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark ? Colors.grey.shade400 : Colors.brown.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: Color(0xFFD97706),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // AI Engineering from Scratch ➔ Claude Master Banner
+          InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [const Color(0xFF1E1B4B), const Color(0xFF18153A)]
+                      : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF6366F1).withAlpha(120),
+                  width: 1.2,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF6366F1).withAlpha(40),
+                    ),
+                    child: const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: Color(0xFF6366F1),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Text(
+                              'AI Engineer from Scratch ➔ Claude Master',
+                              style: TextStyle(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF4F46E5),
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Icon(Icons.bolt_rounded, size: 14, color: Color(0xFF6366F1)),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Child-to-Master roadmap: 523 lessons, backprop by hand, Claude API, MCP & CCDV-F exam.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: isDark ? Colors.grey.shade400 : Colors.indigo.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: Color(0xFF6366F1),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 14),
 
           // Overview stats row
           Row(
             children: [
-              _buildStatBadge(context, '4 Tracks', 'Curriculum', Icons.school_rounded),
+              _buildStatBadge(context, '5 Tracks', 'Curriculum', Icons.school_rounded),
+              const SizedBox(width: 8),
+              _buildStatBadge(context, 'AI Engineer', 'From Scratch', Icons.auto_awesome_rounded),
               const SizedBox(width: 8),
               _buildStatBadge(context, 'Claude AI', 'Developer Hub', Icons.psychology_rounded),
-              const SizedBox(width: 8),
-              _buildStatBadge(context, 'Rosetta', 'Flutter vs Swift', Icons.compare_arrows_rounded),
             ],
           ),
 
@@ -408,9 +623,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 const SizedBox(width: 8),
                 _buildTrackChip(2, 'SwiftUI (1)', Icons.apple_rounded),
                 const SizedBox(width: 8),
-                _buildTrackChip(3, 'Claude Developer (4)', Icons.psychology_alt_rounded),
+                _buildTrackChip(3, 'Claude Developer (5)', Icons.psychology_alt_rounded),
                 const SizedBox(width: 8),
                 _buildTrackChip(4, 'Flutter vs SwiftUI (1)', Icons.compare_arrows_rounded),
+                const SizedBox(width: 8),
+                _buildTrackChip(5, 'Certifications & Roadmap (2)', Icons.workspace_premium_rounded),
               ],
             ),
           ),
@@ -427,7 +644,9 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         ? 'SwiftUI & Modern iOS Modules'
                         : (_selectedTrackIndex == 3
                             ? 'Claude Developer & Architect Modules'
-                            : 'Flutter vs SwiftUI Rosetta Stone'))),
+                            : (_selectedTrackIndex == 4
+                                ? 'Flutter vs SwiftUI Rosetta Stone'
+                                : 'Professional Certification & Exams')))),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
               letterSpacing: -0.3,
