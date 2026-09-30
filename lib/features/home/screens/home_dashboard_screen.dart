@@ -8,6 +8,8 @@ import '../../claude_developer/screens/claude_developer_hub_screen.dart';
 import '../../claude_developer/screens/claude_tool_simulator_screen.dart';
 import '../../cubit_and_state/screens/cubit_intro_screen.dart';
 import '../../cubit_and_state/screens/state_concept_screen.dart';
+import '../../flutter_advanced/screens/engine_internals_screen.dart';
+import '../../flutter_advanced/screens/isolates_concurrency_screen.dart';
 import '../../lecture_slides/screens/lecture_slides_screen.dart';
 import '../../repository_pattern/screens/user_directory_screen.dart';
 import '../../stless_vs_stful/screens/stless_vs_stful_screen.dart';
@@ -30,6 +32,21 @@ class HomeDashboardScreen extends StatefulWidget {
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
   int _selectedTrackIndex = 0; // 0: All, 1: Flutter, 2: Claude, 3: SwiftUI
 
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'Basic':
+        return const Color(0xFF10B981);
+      case 'Intermediate':
+        return const Color(0xFF0284C7);
+      case 'Advanced':
+        return const Color(0xFFEA580C);
+      case 'Master':
+        return const Color(0xFF9333EA);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -37,7 +54,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
     final allModules = [
       // ------------------------------------------
-      // TRACK 1: FLUTTER & DART MODULES
+      // TRACK 1: FLUTTER & DART MODULES (Basic ➔ Master)
       // ------------------------------------------
       _LearningModule(
         trackId: 1,
@@ -47,6 +64,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Interactive sandboxes for Row, Column, Stack, Buttons, Text, Inputs, Lists, Grids, and Dialogs.',
         icon: Icons.widgets_rounded,
         tag: 'Flutter UI',
+        masteryLevel: 'Basic',
         color: const Color(0xFF2563EB),
         screen: const UiCatalogScreen(),
       ),
@@ -58,6 +76,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Deep dive into stless & stful, Widget Tree immutability, setState() mechanics, and the full State lifecycle.',
         icon: Icons.compare_arrows_rounded,
         tag: 'Fundamentals',
+        masteryLevel: 'Basic',
         color: const Color(0xFF8B5CF6),
         screen: const StlessVsStfulScreen(),
       ),
@@ -69,6 +88,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Lightweight BLoC without boilerplate. Learn BlocProvider, BlocBuilder, BlocListener, and BlocConsumer.',
         icon: Icons.bolt_rounded,
         tag: 'State Mgmt',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFF0284C7),
         screen: const CubitIntroScreen(),
       ),
@@ -80,6 +100,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Clean Architecture end-to-end: Model ➔ DataSource ➔ Repository Contract ➔ Cubit ➔ UI with failure simulation.',
         icon: Icons.account_tree_rounded,
         tag: 'Clean Arch',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFF0D9488),
         screen: const UserDirectoryScreen(),
       ),
@@ -91,6 +112,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Master UI = f(State), Ephemeral vs App State, Equatable value equality, and the 4 Canonical UI States.',
         icon: Icons.psychology_rounded,
         tag: 'Core Concepts',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFFEA580C),
         screen: const StateConceptScreen(),
       ),
@@ -102,12 +124,37 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Interactive challenges: Lightbulb setState(), SearchCubit with debouncing, and AuthRepository with retry.',
         icon: Icons.emoji_events_rounded,
         tag: 'Hands-On Lab',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFF10B981),
         screen: const ChallengesScreen(),
       ),
+      _LearningModule(
+        trackId: 1,
+        trackName: 'Flutter',
+        title: 'Isolates & Event Loop Concurrency',
+        description:
+            'Deep dive into the Dart single-threaded event loop, microtasks, background Isolate spawning, compute(), and zero-jank frame rendering.',
+        icon: Icons.alt_route_rounded,
+        tag: 'Concurrency Lab',
+        masteryLevel: 'Advanced',
+        color: const Color(0xFFEA580C),
+        screen: const IsolatesConcurrencyScreen(),
+      ),
+      _LearningModule(
+        trackId: 1,
+        trackName: 'Flutter',
+        title: 'Engine Internals & Custom RenderBox',
+        description:
+            'Explore the Three Trees (Widget ➔ Element ➔ RenderObject), the Layout protocol (constraints down, sizes up), and Dart FFI C/C++ dynamic bindings.',
+        icon: Icons.layers_rounded,
+        tag: 'Engine Architecture',
+        masteryLevel: 'Master',
+        color: const Color(0xFF9333EA),
+        screen: const EngineInternalsScreen(),
+      ),
 
       // ------------------------------------------
-      // TRACK 2: SWIFTUI & MODERN IOS MODULES
+      // TRACK 2: SWIFTUI & MODERN IOS MODULES (Basic ➔ Master)
       // ------------------------------------------
       _LearningModule(
         trackId: 2,
@@ -117,12 +164,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Declarative Apple UI: View protocols, Stacks (VStack/HStack/ZStack), @State, @Binding, @Observable, async/await, and Clean MVVM.',
         icon: Icons.apple_rounded,
         tag: 'iOS 17+ & Swift',
+        masteryLevel: 'Master',
         color: const Color(0xFF4F46E5),
         screen: const SwiftUiHubScreen(),
       ),
 
       // ------------------------------------------
-      // TRACK 3: CLAUDE DEVELOPER & ARCHITECT MODULES
+      // TRACK 3: CLAUDE DEVELOPER & ARCHITECT MODULES (Basic ➔ Master)
       // ------------------------------------------
       _LearningModule(
         trackId: 3,
@@ -132,6 +180,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Comprehensive developer guide: Claude 3.7 Extended Thinking, Prompt Engineering, Tool Use, MCP, Claude Code, Caching, and 6 Agentic Workflows.',
         icon: Icons.psychology_rounded,
         tag: '8 Modules + Labs',
+        masteryLevel: 'Master',
         color: const Color(0xFFD97706),
         screen: const ClaudeDeveloperHubScreen(),
       ),
@@ -143,6 +192,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Based on https://claudecertificationguide.com/learn — Master the 5 official exam domains, 30 task modules, and Pearson VUE 10-Question Timed Mock Exam.',
         icon: Icons.school_rounded,
         tag: 'Timed Mock Exam',
+        masteryLevel: 'Advanced',
         color: const Color(0xFFB45309),
         screen: const ClaudeCurriculumScreen(),
       ),
@@ -154,6 +204,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Step through the 4-step tool execution loop with JSON schemas, tool_use dispatch, self-correcting error handling, and answer synthesis.',
         icon: Icons.handyman_rounded,
         tag: 'Interactive Sandbox',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFF0D9488),
         screen: const ClaudeToolSimulatorScreen(),
       ),
@@ -165,6 +216,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Calculate dollar savings and latency drops across Sonnet 3.7, Haiku, and Opus workloads. Master 5-min TTL and cache breakpoints.',
         icon: Icons.savings_rounded,
         tag: 'ROI Calculator',
+        masteryLevel: 'Advanced',
         color: const Color(0xFF0284C7),
         screen: const ClaudeCachingCalculatorScreen(),
       ),
@@ -180,6 +232,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
             'Direct side-by-side architectural mapping comparing Flutter widgets, Cubits, and layouts directly to their SwiftUI equivalents.',
         icon: Icons.compare_arrows_rounded,
         tag: 'Rosetta Stone',
+        masteryLevel: 'Intermediate',
         color: const Color(0xFF6366F1),
         screen: const SwiftUiRosettaScreen(),
       ),
@@ -400,17 +453,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                           children: [
                             Row(
                               children: [
-                                Expanded(
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: _tierColor(module.masteryLevel).withAlpha(25),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: _tierColor(module.masteryLevel).withAlpha(120),
+                                      width: 0.8,
+                                    ),
+                                  ),
                                   child: Text(
-                                    module.title,
-                                    style: const TextStyle(
+                                    module.masteryLevel.toUpperCase(),
+                                    style: TextStyle(
+                                      color: _tierColor(module.masteryLevel),
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
+                                      fontSize: 9.5,
+                                      letterSpacing: 0.3,
                                     ),
                                   ),
                                 ),
+                                const SizedBox(width: 6),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                                   decoration: BoxDecoration(
                                     color: module.color.withAlpha(25),
                                     borderRadius: BorderRadius.circular(6),
@@ -420,11 +485,19 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                                     style: TextStyle(
                                       color: module.color,
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 11,
+                                      fontSize: 10.5,
                                     ),
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              module.title,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
                             ),
                             const SizedBox(height: 6),
                             Text(
@@ -573,6 +646,7 @@ class _LearningModule {
   final String description;
   final IconData icon;
   final String tag;
+  final String masteryLevel; // 'Basic', 'Intermediate', 'Advanced', 'Master'
   final Color color;
   final Widget screen;
 
@@ -583,6 +657,7 @@ class _LearningModule {
     required this.description,
     required this.icon,
     required this.tag,
+    required this.masteryLevel,
     required this.color,
     required this.screen,
   });

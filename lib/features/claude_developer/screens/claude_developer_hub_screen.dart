@@ -8,13 +8,61 @@ import 'claude_tool_simulator_screen.dart';
 
 /// Complete Claude Developer Mastery Hub.
 /// Guides engineers from fundamental API calls to production-grade agentic architectures.
-class ClaudeDeveloperHubScreen extends StatelessWidget {
+class ClaudeDeveloperHubScreen extends StatefulWidget {
   const ClaudeDeveloperHubScreen({super.key});
+
+  @override
+  State<ClaudeDeveloperHubScreen> createState() => _ClaudeDeveloperHubScreenState();
+}
+
+class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
+  String _selectedTier = 'All'; // 'All', 'Basic', 'Intermediate', 'Advanced', 'Master'
+
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'Basic':
+        return const Color(0xFF10B981);
+      case 'Intermediate':
+        return const Color(0xFF0284C7);
+      case 'Advanced':
+        return const Color(0xFFEA580C);
+      case 'Master':
+        return const Color(0xFF9333EA);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
+
+  Widget _buildTierChip(String tier, String label) {
+    final isSelected = _selectedTier == tier;
+    final color = _tierColor(tier);
+
+    return FilterChip(
+      selected: isSelected,
+      label: Text(label),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+        color: isSelected ? Colors.white : null,
+      ),
+      selectedColor: color,
+      checkmarkColor: Colors.white,
+      onSelected: (selected) {
+        setState(() {
+          _selectedTier = tier;
+        });
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final filteredTopics = _selectedTier == 'All'
+        ? claudeDeveloperTopics
+        : claudeDeveloperTopics.where((t) => t.masteryLevel == _selectedTier).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -201,14 +249,36 @@ class ClaudeDeveloperHubScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 22),
+          const SizedBox(height: 18),
+
+          // Mastery Level Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildTierChip('All', 'All (${claudeDeveloperTopics.length})'),
+                const SizedBox(width: 8),
+                _buildTierChip('Basic', '🟢 Basic (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Intermediate', '🟡 Intermediate (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Advanced', '🟠 Advanced (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Master', '🟣 Master (2)'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
 
           // Section Title
           Row(
             children: [
               Expanded(
                 child: Text(
-                  'Complete Curriculum (8 Core Modules)',
+                  _selectedTier == 'All'
+                      ? 'Complete Curriculum (8 Core Modules)'
+                      : '$_selectedTier Curriculum (${filteredTopics.length} Modules)',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     letterSpacing: -0.3,
@@ -225,9 +295,8 @@ class ClaudeDeveloperHubScreen extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Topic Cards List
-          ...claudeDeveloperTopics.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final topic = entry.value;
+          ...filteredTopics.map((topic) {
+            final originalIdx = claudeDeveloperTopics.indexOf(topic);
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
@@ -262,7 +331,7 @@ class ClaudeDeveloperHubScreen extends StatelessWidget {
                             Row(
                               children: [
                                 Text(
-                                  'MODULE ${idx + 1}',
+                                  'MODULE ${originalIdx + 1}',
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10.5,
@@ -270,7 +339,27 @@ class ClaudeDeveloperHubScreen extends StatelessWidget {
                                     letterSpacing: 0.5,
                                   ),
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                                  decoration: BoxDecoration(
+                                    color: _tierColor(topic.masteryLevel).withAlpha(30),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: _tierColor(topic.masteryLevel).withAlpha(140),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    topic.masteryLevel.toUpperCase(),
+                                    style: TextStyle(
+                                      fontSize: 9.5,
+                                      fontWeight: FontWeight.bold,
+                                      color: _tierColor(topic.masteryLevel),
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                ),
                                 const Spacer(),
                                 Flexible(
                                   child: Container(

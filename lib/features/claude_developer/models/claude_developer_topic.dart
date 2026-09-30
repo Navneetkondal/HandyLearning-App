@@ -12,6 +12,7 @@ class ClaudeDeveloperTopic {
   final String fullGuideMarkdown;
   final String pythonCodeSnippet;
   final String typeScriptCodeSnippet;
+  final String masteryLevel; // 'Basic', 'Intermediate', 'Advanced', 'Master'
   final List<String> bestPractices;
   final List<String> commonPitfalls;
 
@@ -20,6 +21,7 @@ class ClaudeDeveloperTopic {
     required this.title,
     required this.category,
     required this.summary,
+    required this.masteryLevel,
     required this.icon,
     required this.accentColor,
     required this.keyConcepts,
@@ -33,11 +35,12 @@ class ClaudeDeveloperTopic {
 
 /// The complete repository of Claude Developer topics.
 final List<ClaudeDeveloperTopic> claudeDeveloperTopics = [
-  // 1. Models & Hybrid Reasoning
+  // 1. Models & Hybrid Reasoning (Basic)
   ClaudeDeveloperTopic(
     id: 'models_reasoning',
     title: 'Claude 3.7 Model Family & Extended Thinking',
     category: 'Foundations & Architecture',
+    masteryLevel: 'Basic',
     summary:
         'Understand Claude 3.7 Sonnet (Hybrid Reasoning), 3.5 Sonnet, 3.5 Haiku, token windows, and budget_tokens reasoning traces.',
     icon: Icons.psychology_rounded,
@@ -129,11 +132,12 @@ async function runHybridReasoning() {
     ],
   ),
 
-  // 2. Prompt Engineering & XML Tags
+  // 2. Prompt Engineering & XML Tags (Basic)
   ClaudeDeveloperTopic(
     id: 'prompt_engineering',
     title: 'Prompt Engineering & XML Tag Structuring',
     category: 'Prompt Craft',
+    masteryLevel: 'Basic',
     summary:
         'Master the Golden Structure of Claude prompts: system directives, XML tag hierarchy, few-shot examples, and JSON prefilling.',
     icon: Icons.code_rounded,
@@ -242,6 +246,7 @@ Extract all companies, monetary amounts, and dates.`,
     id: 'tool_use',
     title: 'Tool Use & Function Calling End-to-End',
     category: 'Agentic Capabilities',
+    masteryLevel: 'Intermediate',
     summary:
         'Implement JSON Schema tools, handle the `tool_use` ➔ `tool_result` execution cycle, parallel tool calling, and self-correcting error recovery.',
     icon: Icons.handyman_rounded,
@@ -374,6 +379,7 @@ async function runToolExample() {
     id: 'mcp_architecture',
     title: 'Model Context Protocol (MCP) Architecture',
     category: 'Ecosystem & Protocols',
+    masteryLevel: 'Advanced',
     summary:
         'The open standard for connecting AI models to external tools, databases, and local systems. Master Hosts, Clients, Servers, and stdio/SSE transports.',
     icon: Icons.hub_rounded,
@@ -478,6 +484,7 @@ await server.connect(transport);''',
     id: 'claude_code',
     title: 'Claude Code CLI & Terminal Agent Workflows',
     category: 'Developer Tools',
+    masteryLevel: 'Intermediate',
     summary:
         'Harness Anthropic’s official agentic command-line tool. Master CLAUDE.md configuration, context compaction, and subagent orchestration.',
     icon: Icons.terminal_rounded,
@@ -561,6 +568,7 @@ console.log('CLAUDE.md successfully configured.');''',
     id: 'prompt_caching',
     title: 'Prompt Caching, Citations & Batch API',
     category: 'Cost & Latency Engineering',
+    masteryLevel: 'Advanced',
     summary:
         'Cut API costs by up to 90% and slash latency with ephemeral prompt caching. Master cache breakpoints, citations, and 50% Batch API savings.',
     icon: Icons.savings_rounded,
@@ -669,6 +677,7 @@ async function cachedConversation() {
     id: 'agentic_architectures',
     title: 'Agentic Workflows & Multi-Agent Architecture',
     category: 'Advanced Systems Design',
+    masteryLevel: 'Master',
     summary:
         'Architect production-grade agents based on Anthropic’s research: Prompt Chaining, Routing, Parallelization, Orchestrator-Workers, and Evaluator-Optimizer.',
     icon: Icons.alt_route_rounded,
@@ -766,6 +775,7 @@ async function routeQuery(userQuery: string): Promise<string> {
     id: 'security_safety',
     title: 'Security, Prompt Injection & Guardrails',
     category: 'Enterprise Security',
+    masteryLevel: 'Master',
     summary:
         'Protect your applications against direct and indirect prompt injection, tool jailbreaks, data leakage, and untrusted user inputs.',
     icon: Icons.security_rounded,

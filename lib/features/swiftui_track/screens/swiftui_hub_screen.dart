@@ -4,13 +4,40 @@ import '../models/swiftui_lesson.dart';
 import 'swiftui_rosetta_screen.dart';
 
 /// Hub screen for the SwiftUI & Modern iOS track.
-class SwiftUiHubScreen extends StatelessWidget {
+/// Features full curriculum from Basic ➔ Intermediate ➔ Advanced ➔ Master.
+class SwiftUiHubScreen extends StatefulWidget {
   const SwiftUiHubScreen({super.key});
+
+  @override
+  State<SwiftUiHubScreen> createState() => _SwiftUiHubScreenState();
+}
+
+class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
+  String _selectedTier = 'All'; // 'All', 'Basic', 'Intermediate', 'Advanced', 'Master'
+
+  Color _tierColor(String tier) {
+    switch (tier) {
+      case 'Basic':
+        return const Color(0xFF10B981);
+      case 'Intermediate':
+        return const Color(0xFF0284C7);
+      case 'Advanced':
+        return const Color(0xFFEA580C);
+      case 'Master':
+        return const Color(0xFF9333EA);
+      default:
+        return const Color(0xFF64748B);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    final filteredLessons = _selectedTier == 'All'
+        ? swiftUiLessons
+        : swiftUiLessons.where((l) => l.masteryLevel == _selectedTier).toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -62,18 +89,24 @@ class SwiftUiHubScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: const Text(
-                        'APPLE ECOSYSTEM TRACK',
+                        'BASIC TO MASTER CURRICULUM',
                         style: TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
-                          fontSize: 11,
+                          fontSize: 10.5,
                           letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                    const Spacer(),
-                    const Text('iOS 17+ & Swift 5.9+',
-                        style: TextStyle(color: Colors.white70, fontSize: 12)),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'iOS 17+ • Swift 5.9+ • Metal',
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: Colors.white70, fontSize: 11.5),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -88,7 +121,7 @@ class SwiftUiHubScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Learn Apple declarative UI: View protocols, Stacks, Property Wrappers (@State, @Binding, @Observable), async/await, and Clean MVVM architecture.',
+                  'From basic View protocols and Layout Stacks to Swift Concurrency Actors, AttributeGraph internals, and Metal shaders.',
                   style: TextStyle(color: Colors.white, fontSize: 13, height: 1.35),
                 ),
                 const SizedBox(height: 14),
@@ -109,20 +142,54 @@ class SwiftUiHubScreen extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
+
+          // Mastery Level Filter Chips
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _buildTierChip('All', 'All (${swiftUiLessons.length})'),
+                const SizedBox(width: 8),
+                _buildTierChip('Basic', '🟢 Basic (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Intermediate', '🟡 Intermediate (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Advanced', '🟠 Advanced (2)'),
+                const SizedBox(width: 8),
+                _buildTierChip('Master', '🟣 Master (2)'),
+              ],
+            ),
+          ),
+
+          const SizedBox(height: 18),
 
           // Section Title
-          Text(
-            'Core SwiftUI Lessons & Patterns',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.3,
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  _selectedTier == 'All'
+                      ? 'All Lessons (Basic to Master)'
+                      : '$_selectedTier Tier Lessons',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+              ),
+              Text(
+                '${filteredLessons.length} Modules',
+                style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
 
           // Lesson List
-          ...swiftUiLessons.map((lesson) {
+          ...filteredLessons.map((lesson) {
+            final tColor = _tierColor(lesson.masteryLevel);
+
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               child: Padding(
@@ -131,6 +198,7 @@ class SwiftUiHubScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           padding: const EdgeInsets.all(12),
@@ -159,15 +227,17 @@ class SwiftUiHubScreen extends StatelessWidget {
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                     decoration: BoxDecoration(
-                                      color: lesson.color.withAlpha(25),
+                                      color: tColor.withAlpha(30),
                                       borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: tColor.withAlpha(80)),
                                     ),
                                     child: Text(
-                                      lesson.tag,
+                                      lesson.masteryLevel.toUpperCase(),
                                       style: TextStyle(
-                                        color: lesson.color,
+                                        color: tColor,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 11,
+                                        fontSize: 10,
+                                        letterSpacing: 0.5,
                                       ),
                                     ),
                                   ),
@@ -208,7 +278,7 @@ class SwiftUiHubScreen extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 point,
-                                style: const TextStyle(fontSize: 12.5, height: 1.3),
+                                style: const TextStyle(fontSize: 13, height: 1.35),
                               ),
                             ),
                           ],
@@ -216,30 +286,76 @@ class SwiftUiHubScreen extends StatelessWidget {
                       );
                     }),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 14),
 
-                    // Swift Code snippet
+                    // Swift Snippet Card
                     CodeSnippetCard(
                       title: 'SwiftUI Implementation',
-                      code: lesson.swiftCodeSnippet,
                       language: 'swift',
-                      explanation: lesson.architecturalExplanation,
+                      code: lesson.swiftCodeSnippet,
                     ),
 
-                    // Flutter Equivalent
+                    const SizedBox(height: 10),
+
+                    // Flutter Equivalent Card
                     CodeSnippetCard(
-                      title: 'Flutter Equivalent Architecture',
-                      code: lesson.flutterEquivalentSnippet,
+                      title: 'Flutter Equivalent',
                       language: 'dart',
+                      code: lesson.flutterEquivalentSnippet,
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Architectural Comparison
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFCBD5E1),
+                        ),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.lightbulb_outline_rounded, size: 18, color: Colors.amber.shade700),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              lesson.architecturalExplanation,
+                              style: const TextStyle(fontSize: 12, height: 1.35),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
               ),
             );
           }),
-          const SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  Widget _buildTierChip(String tier, String label) {
+    final isSelected = _selectedTier == tier;
+    final color = _tierColor(tier);
+
+    return FilterChip(
+      selected: isSelected,
+      label: Text(label),
+      selectedColor: color.withAlpha(40),
+      labelStyle: TextStyle(
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontSize: 12,
+        color: isSelected ? color : null,
+      ),
+      onSelected: (_) {
+        setState(() => _selectedTier = tier);
+      },
     );
   }
 }
