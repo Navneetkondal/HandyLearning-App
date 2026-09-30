@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/widgets/code_snippet_card.dart';
 import '../models/swiftui_lesson.dart';
 import 'swiftui_rosetta_screen.dart';
+import 'swiftui_state_simulator_screen.dart';
 
 /// Hub screen for the SwiftUI & Modern iOS track.
 /// Features full curriculum from Basic ➔ Intermediate ➔ Advanced ➔ Master.
@@ -43,6 +44,15 @@ class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
       appBar: AppBar(
         title: const Text('SwiftUI & Modern iOS Track'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.play_circle_outline_rounded),
+            tooltip: 'State & Binding Simulator',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const SwiftUiStateSimulatorScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.compare_arrows_rounded),
             tooltip: 'Flutter vs SwiftUI Rosetta Stone',
@@ -125,18 +135,37 @@ class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
                   style: TextStyle(color: Colors.white, fontSize: 13, height: 1.35),
                 ),
                 const SizedBox(height: 14),
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: const Color(0xFF4F46E5),
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const SwiftUiRosettaScreen()),
-                    );
-                  },
-                  icon: const Icon(Icons.compare_arrows_rounded),
-                  label: const Text('Open Flutter ➔ SwiftUI Rosetta Stone'),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 8,
+                  children: [
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: const Color(0xFF4F46E5),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const SwiftUiStateSimulatorScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: const Text('State & Binding Simulator'),
+                    ),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white70),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const SwiftUiRosettaScreen()),
+                        );
+                      },
+                      icon: const Icon(Icons.compare_arrows_rounded),
+                      label: const Text('Rosetta Stone'),
+                    ),
+                  ],
                 ),
               ],
             ),

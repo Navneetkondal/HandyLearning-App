@@ -15,6 +15,7 @@ import '../../repository_pattern/screens/user_directory_screen.dart';
 import '../../stless_vs_stful/screens/stless_vs_stful_screen.dart';
 import '../../swiftui_track/screens/swiftui_hub_screen.dart';
 import '../../swiftui_track/screens/swiftui_rosetta_screen.dart';
+import '../../swiftui_track/screens/swiftui_state_simulator_screen.dart';
 import '../../ui_components/screens/ui_catalog_screen.dart';
 
 /// Main Dashboard of FlutterLearningHub.
@@ -168,6 +169,18 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         color: const Color(0xFF4F46E5),
         screen: const SwiftUiHubScreen(),
       ),
+      _LearningModule(
+        trackId: 2,
+        trackName: 'SwiftUI',
+        title: 'SwiftUI State & Data Flow Simulator',
+        description:
+            'Interactive runtime lab: Test @State vs @Binding two-way data flow, iOS 17 @Observable tasks, and @Environment subtree propagation.',
+        icon: Icons.play_circle_outline_rounded,
+        tag: 'Interactive Lab',
+        masteryLevel: 'Intermediate',
+        color: const Color(0xFF6366F1),
+        screen: const SwiftUiStateSimulatorScreen(),
+      ),
 
       // ------------------------------------------
       // TRACK 3: CLAUDE DEVELOPER & ARCHITECT MODULES (Basic ➔ Master)
@@ -179,7 +192,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         description:
             'Comprehensive developer guide: Claude 3.7 Extended Thinking, Prompt Engineering, Tool Use, MCP, Claude Code, Caching, and 6 Agentic Workflows.',
         icon: Icons.psychology_rounded,
-        tag: '8 Modules + Labs',
+        tag: '9 Modules + Labs',
         masteryLevel: 'Master',
         color: const Color(0xFFD97706),
         screen: const ClaudeDeveloperHubScreen(),

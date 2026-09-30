@@ -127,7 +127,7 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                        '8 Modules • 3 Labs',
+                        '9 Modules • 3 Labs',
                         textAlign: TextAlign.end,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.white70, fontSize: 11.5),
@@ -260,7 +260,7 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                 const SizedBox(width: 8),
                 _buildTierChip('Basic', '🟢 Basic (2)'),
                 const SizedBox(width: 8),
-                _buildTierChip('Intermediate', '🟡 Intermediate (2)'),
+                _buildTierChip('Intermediate', '🟡 Intermediate (3)'),
                 const SizedBox(width: 8),
                 _buildTierChip('Advanced', '🟠 Advanced (2)'),
                 const SizedBox(width: 8),
@@ -277,7 +277,7 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
               Expanded(
                 child: Text(
                   _selectedTier == 'All'
-                      ? 'Complete Curriculum (8 Core Modules)'
+                      ? 'Complete Curriculum (9 Core Modules)'
                       : '$_selectedTier Curriculum (${filteredTopics.length} Modules)',
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.bold,

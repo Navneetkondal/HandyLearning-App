@@ -78,6 +78,30 @@ class SwiftUiRosettaScreen extends StatelessWidget {
         swiftUi: 'protocol UserRepository',
         description: 'Abstract interface decoupling networking/storage from presentation.',
       ),
+      _RosettaItem(
+        concept: 'Dependency Injection',
+        flutter: 'RepositoryProvider / InheritedWidget',
+        swiftUi: '@Environment / .environment(key, val)',
+        description: 'Ambient subtree context injection down the view hierarchy without prop drilling.',
+      ),
+      _RosettaItem(
+        concept: 'Type-Safe Navigation',
+        flutter: 'Navigator.push / GoRouter (declarative)',
+        swiftUi: 'NavigationStack + navigationDestination(for:)',
+        description: 'Value-driven stack-based path navigation with deep link serialization.',
+      ),
+      _RosettaItem(
+        concept: 'Background Concurrency',
+        flutter: 'compute(heavyTask) / Isolate.spawn()',
+        swiftUi: 'Task.detached { ... } / actor (MainActor)',
+        description: 'Offloading CPU bottlenecks away from UI render thread to prevent frame drops.',
+      ),
+      _RosettaItem(
+        concept: 'Low-Level Graphics',
+        flutter: 'CustomPainter + FragmentShader',
+        swiftUi: 'Canvas { ... } + .layerEffect(ShaderLibrary)',
+        description: 'Direct GPU canvas draw calls and fragment shaders (Skia/Impeller vs Metal).',
+      ),
     ];
 
     return Scaffold(

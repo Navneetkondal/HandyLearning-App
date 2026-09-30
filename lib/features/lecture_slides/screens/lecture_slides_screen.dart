@@ -140,7 +140,43 @@ class ProductLoaded extends ProductState {
       ],
       codeSnippet: '''// Always add const to static constructors:
 const SizedBox(height: 16);''',
-      speakerTip: 'Congratulate your students on completing the core architecture curriculum!',
+      speakerTip: 'Review common pitfalls with students to prepare them for technical interviews.',
+    ),
+    const _LectureSlideData(
+      number: 8,
+      badge: 'LESSON 8',
+      title: 'Isolates & The Event Loop',
+      subtitle: 'Advanced Multithreading & 60/120 FPS Rendering',
+      bulletPoints: [
+        'Single-Threaded Dart: Microtask Queue has absolute priority over the Event Queue.',
+        'Why Jank Happens: Long-running CPU math on the UI Isolate delays vsync frame signals (16.6ms window).',
+        'compute(): Quick helper to spawn a short-lived worker Isolate, pass data, and receive the result.',
+        'Isolate.spawn(): Long-lived background workers communicating via SendPort and ReceivePort.',
+        'Memory Isolation: Isolates do not share heap memory; data is copied or transferred cleanly.',
+      ],
+      codeSnippet: '''// Offload heavy JSON or crypto without blocking UI:
+final result = await compute(parseHeavyPayload, rawJson);''',
+      speakerTip: 'Demonstrate the rotating speed indicator in the Isolates studio to show zero frame drops.',
+    ),
+    const _LectureSlideData(
+      number: 9,
+      badge: 'LESSON 9',
+      title: 'Engine Internals & RenderObjects',
+      subtitle: 'The Three Trees & Custom RenderBox Pipeline',
+      bulletPoints: [
+        'The Three Trees: Widget (Blueprint) ➔ Element (Lifecycle/Graph) ➔ RenderObject (Layout & Pixels).',
+        'Layout Protocol: Constraints go down (BoxConstraints), sizes go up (Size), parent sets position (Offset).',
+        'markNeedsLayout() vs markNeedsPaint(): Layout passes trigger re-sizing; paint passes trigger canvas redrawing.',
+        'RepaintBoundary: Isolates complex animated subtrees to their own Skia/Impeller GPU display list.',
+        'Dart FFI: High-speed zero-copy native interop with C/C++/Rust shared libraries (.so, .dylib, .dll).',
+      ],
+      codeSnippet: '''class MyRenderBox extends RenderBox {
+  @override
+  void performLayout() {
+    size = constraints.biggest; // Sizes go up!
+  }
+}''',
+      speakerTip: 'Remind students that mastering the RenderObject tree is what separates Senior from Staff engineers.',
     ),
   ];
 

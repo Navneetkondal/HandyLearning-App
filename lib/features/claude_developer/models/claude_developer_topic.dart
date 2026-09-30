@@ -857,4 +857,131 @@ function buildSecurePrompt(rawInput: string): string {
       'Allowing tools to return unsanitized raw code directly into shell execution environments.',
     ],
   ),
+
+  // 9. Vision & Multimodal Document Processing (Intermediate)
+  ClaudeDeveloperTopic(
+    id: 'multimodal_vision',
+    title: 'Multimodal Vision & Document Processing',
+    category: 'Multimodal Capabilities',
+    masteryLevel: 'Intermediate',
+    summary:
+        'Process images, charts, diagrams, and PDF documents with Claude. Extract structured JSON from invoices, transcode UI mockups into code, and calculate image tokens.',
+    icon: Icons.image_search_rounded,
+    accentColor: const Color(0xFF0284C7),
+    keyConcepts: [
+      'Multimodal Input: Pass base64 or URL images (`image/jpeg`, `image/png`, `image/gif`, `image/webp`).',
+      'PDF Document Understanding: Claude natively ingests PDF documents (up to 32MB / 100 pages per request).',
+      'Structured OCR & Chart Extraction: Transcribe complex tables, handwritten notes, and engineering blueprints into clean JSON or markdown.',
+      'UI-to-Code Generation: Feed mobile or web design screenshots to produce pixel-perfect Flutter or SwiftUI code.',
+      'Image Token Calculation: Images are billed based on resolution (approx. (width * height) / 750 tokens).',
+    ],
+    fullGuideMarkdown: '''
+### Multimodal Vision & Document Ingestion
+
+Claude 3.5 and 3.7 Sonnet feature state-of-the-art visual reasoning across images, charts, screenshots, and PDF documents.
+
+#### Anatomy of a Multimodal Request
+An image content block has `type: "image"` with `source: {"type": "base64", "media_type": "...", "data": "..."}`:
+
+```json
+{
+  "role": "user",
+  "content": [
+    {
+      "type": "image",
+      "source": {
+        "type": "base64",
+        "media_type": "image/png",
+        "data": "iVBORw0KGgoAAAANSUhEUgAA..."
+      }
+    },
+    {
+      "type": "text",
+      "text": "Transcribe this dashboard chart into a JSON array of monthly revenue data."
+    }
+  ]
+}
+```
+
+#### Native PDF Document Understanding
+Claude processes multi-page PDFs using `type: "document"` and `media_type: "application/pdf"`. Claude sees both the embedded text AND vector visual layouts (diagrams, tables, flowcharts).
+''',
+    pythonCodeSnippet: '''import anthropic
+import base64
+
+client = anthropic.Anthropic()
+
+# Load image from disk and encode to base64
+with open("dashboard_mockup.png", "rb") as image_file:
+    image_data = base64.b64encode(image_file.read()).decode("utf-8")
+
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=2048,
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": "image/png",
+                        "data": image_data,
+                    },
+                },
+                {
+                    "type": "text",
+                    "text": "Convert this UI design mockup into a production-ready Flutter StatelessWidget.",
+                },
+            ],
+        }
+    ],
+)
+print(response.content[0].text)''',
+    typeScriptCodeSnippet: '''import Anthropic from '@anthropic-ai/sdk';
+import * as fs from 'fs';
+
+const anthropic = new Anthropic();
+
+async function analyzeInvoicePdf() {
+  const pdfBuffer = fs.readFileSync('invoice_2025.pdf');
+  const base64Pdf = pdfBuffer.toString('base64');
+
+  const response = await anthropic.messages.create({
+    model: 'claude-3-7-sonnet-20250219',
+    max_tokens: 1024,
+    messages: [
+      {
+        role: 'user',
+        content: [
+          {
+            type: 'document',
+            source: {
+              type: 'base64',
+              media_type: 'application/pdf',
+              data: base64Pdf,
+            },
+          },
+          {
+            type: 'text',
+            text: 'Extract the invoice line items, tax amount, and total into structured JSON.',
+          },
+        ],
+      },
+    ],
+  });
+
+  console.log(response.content[0]);
+}''',
+    bestPractices: [
+      'Scale down ultra-high-resolution images (> 8000px) before upload to optimize token costs and latency.',
+      'Place specific instructions in the text block AFTER the image block for optimal attention focus.',
+      'When extracting structured tables, prompt Claude to output in CSV or strict JSON with a schema.',
+    ],
+    commonPitfalls: [
+      'Supplying low-contrast or severely blurry screenshots where small text is illegible.',
+      'Forgetting that PDFs larger than 32MB must be split or chunked before API transmission.',
+    ],
+  ),
 ];
