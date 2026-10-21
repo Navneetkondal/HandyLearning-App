@@ -83,7 +83,10 @@ class _LayoutsDemoScreenState extends State<LayoutsDemoScreen> {
             controls: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     const Text('Direction: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                     ChoiceChip(
@@ -91,7 +94,6 @@ class _LayoutsDemoScreenState extends State<LayoutsDemoScreen> {
                       selected: _isRow,
                       onSelected: (val) => setState(() => _isRow = true),
                     ),
-                    const SizedBox(width: 8),
                     ChoiceChip(
                       label: const Text('Column (Vertical)'),
                       selected: !_isRow,

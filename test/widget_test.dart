@@ -1,95 +1,90 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/main.dart';
+import 'package:handy_learn/features/home/screens/home_dashboard_screen.dart';
+import 'package:handy_learn/main.dart';
 
 void main() {
-  testWidgets('FlutterLearningHub multi-track dashboard renders properly', (WidgetTester tester) async {
+  testWidgets('handyLearn premium engineering dashboard renders properly', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     // Build our app and trigger a frame.
-    await tester.pumpWidget(const FlutterLearningHubApp());
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(const HandyLearnApp(initialHome: HomeDashboardScreen()));
+    await tester.pump(const Duration(milliseconds: 200));
 
     // Verify Dashboard Title is present
-    expect(find.text('Flutter Learning Hub'), findsOneWidget);
+    expect(find.text('handyLearn'), findsOneWidget);
 
-    // Verify Welcome Card is present
-    expect(find.text('Multi-Platform & AI Engineering Hub'), findsOneWidget);
+    // Verify Welcome header
+    expect(find.textContaining('Navneet'), findsOneWidget);
+    expect(find.text('What would you like to master today?'), findsOneWidget);
 
-    // Verify Multi-Track Header
-    expect(find.text('MULTI-TRACK CURRICULUM'), findsOneWidget);
+    // Verify Search bar and quick pills
+    expect(find.text('Search topics, domains, interview Q&A...'), findsOneWidget);
+    expect(find.text('Swift Concurrency'), findsOneWidget);
 
-    // Verify initial Module Cards exist
-    final listFinder = find.byType(Scrollable).first;
-    final basicUiFinder = find.text('Basic UI Components');
-    await tester.scrollUntilVisible(basicUiFinder, 100, scrollable: listFinder);
-    expect(basicUiFinder, findsOneWidget);
+    // Verify Continue Card
+    expect(find.text('Recommended Path'), findsOneWidget);
+    expect(find.text('iOS Senior & Lead Preparation'), findsOneWidget);
 
-    final stlessFinder = find.text('Stateless vs Stateful');
-    await tester.scrollUntilVisible(stlessFinder, 100, scrollable: listFinder);
-    expect(stlessFinder, findsOneWidget);
-    final cubitCardFinder = find.text('Cubit & State Management');
-    await tester.scrollUntilVisible(cubitCardFinder, 200, scrollable: listFinder);
-    expect(cubitCardFinder, findsOneWidget);
+    // Verify Quick Action Rail
+    expect(find.text('Interview Mode'), findsOneWidget);
+    expect(find.text('System Design'), findsWidgets);
 
-    final swiftCardFinder = find.text('SwiftUI & Modern iOS Track');
-    await tester.scrollUntilVisible(swiftCardFinder, 200, scrollable: listFinder);
-    expect(swiftCardFinder, findsOneWidget);
+    // Verify Question of the Day
+    expect(find.text('Question of the Day'), findsOneWidget);
 
-    final claudeDevCardFinder = find.text('Become a Complete Claude Developer');
-    await tester.scrollUntilVisible(claudeDevCardFinder, 200, scrollable: listFinder);
-    expect(claudeDevCardFinder, findsOneWidget);
+    // Scroll to see Explore Tracks Grid
+    final exploreFinder = find.text('Explore Tracks');
+    final scrollableFinder = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(exploreFinder, 200, scrollable: scrollableFinder);
+    await tester.pump(const Duration(milliseconds: 100));
 
-    final claudeCardFinder = find.text('Claude Certified Architect Guide');
-    await tester.scrollUntilVisible(claudeCardFinder, 200, scrollable: listFinder);
-    expect(claudeCardFinder, findsOneWidget);
+    expect(exploreFinder, findsOneWidget);
+    expect(find.text('iOS Prep'), findsWidgets);
+    expect(find.text('Flutter & UI'), findsWidgets);
+    expect(find.text('Cloud & AI'), findsWidgets);
+    expect(find.text('Coding & DSA'), findsWidgets);
+    expect(find.text('Labs'), findsWidgets);
+    expect(find.text('Certs'), findsWidgets);
+
+    // Scroll further to see Recently Studied section
+    final recentlyStudiedFinder = find.text('Recently Studied');
+    await tester.scrollUntilVisible(recentlyStudiedFinder, 200, scrollable: scrollableFinder);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    // Verify Recently Studied section
+    expect(recentlyStudiedFinder, findsOneWidget);
 
     // Verify Theme toggle button works
-    final themeToggleFinder = find.byType(IconButton).first;
+    final themeToggleFinder = find.byIcon(Icons.dark_mode_rounded);
     expect(themeToggleFinder, findsOneWidget);
     await tester.tap(themeToggleFinder);
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 200));
+  });
 
-    // Test Claude Track Navigation
-    await tester.tap(claudeCardFinder);
-    await tester.pumpAndSettle();
+  testWidgets('handyLearn accessibility semantics and labels test', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 1000);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
 
-    expect(find.text('Claude Architect Certification'), findsOneWidget);
-    expect(find.text('60 Qs'), findsOneWidget);
-    expect(find.text('10-Question Timed Mock Exam'), findsOneWidget);
+    final SemanticsHandle handle = tester.ensureSemantics();
+    await tester.pumpWidget(const HandyLearnApp(initialHome: HomeDashboardScreen()));
+    await tester.pump(const Duration(milliseconds: 200));
 
-    // Launch Mock Exam from banner
-    final startExamBtn = find.byKey(const Key('launchMockExamButton'));
-    expect(startExamBtn, findsOneWidget);
-    await tester.tap(startExamBtn);
-    await tester.pumpAndSettle();
+    // Verify search suggestions have labeled semantics
+    expect(
+      find.byWidgetPredicate((w) => w is Semantics && (w.properties.label?.contains('Swift Concurrency') ?? false)),
+      findsOneWidget,
+    );
 
-    expect(find.text('Claude Certified Architect Exam'), findsOneWidget);
-    expect(find.text('QUESTION 1 OF 10'), findsOneWidget);
+    // Verify daily challenge answer reveal toggle has proper accessible label
+    expect(
+      find.byWidgetPredicate((w) => w is Semantics && (w.properties.label?.contains('daily challenge answer') ?? false)),
+      findsOneWidget,
+    );
 
-    // Pop back from Mock Exam to Curriculum
-    final examBackButton = find.byType(BackButton);
-    await tester.tap(examBackButton);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Domain 1: Agentic Architecture & Orchestration'), findsOneWidget);
-
-    // Pop back to home
-    final backButton = find.byType(BackButton);
-    await tester.tap(backButton);
-    await tester.pumpAndSettle();
-
-    // Open Lecture Presentation Slides from AppBar
-    final slidesButtonFinder = find.byTooltip('Lecture Presentation Slides');
-    expect(slidesButtonFinder, findsOneWidget);
-    await tester.tap(slidesButtonFinder);
-    await tester.pumpAndSettle();
-
-    // Verify Slide 1 loaded
-    expect(find.text('The Flutter Mental Model'), findsOneWidget);
-    expect(find.text('Next Slide'), findsOneWidget);
-
-    // Tap Next Slide
-    await tester.tap(find.text('Next Slide'));
-    await tester.pumpAndSettle();
-    expect(find.text('UI Components & Box Constraints'), findsOneWidget);
+    handle.dispose();
   });
 }

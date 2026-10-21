@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/ai_engineering/models/ai_engineer_roadmap_models.dart';
-import 'package:flutter_learning_hub/features/ai_engineering/screens/ai_engineer_roadmap_screen.dart';
+import 'package:handy_learn/features/ai_engineering/models/ai_engineer_roadmap_models.dart';
+import 'package:handy_learn/features/ai_engineering/screens/ai_engineer_roadmap_screen.dart';
 
 void main() {
   group('AI Engineer & Claude Mastery Roadmap Tests', () {

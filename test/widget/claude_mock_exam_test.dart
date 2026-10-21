@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/claude_certification/screens/claude_mock_exam_screen.dart';
+import 'package:handy_learn/features/claude_certification/screens/claude_mock_exam_screen.dart';
 
 void main() {
   testWidgets('ClaudeMockExamScreen displays questions, accepts answers, and calculates score',

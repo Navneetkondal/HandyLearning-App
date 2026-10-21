@@ -679,7 +679,7 @@ async function cachedConversation() {
     category: 'Advanced Systems Design',
     masteryLevel: 'Master',
     summary:
-        'Architect production-grade agents based on Anthropic’s research: Prompt Chaining, Routing, Parallelization, Orchestrator-Workers, and Evaluator-Optimizer.',
+        'Architect production-grade agents based on Anthropic’s research: Prompt Chaining, Routing, Parallelization, Orchestrator-Workers, Evaluator-Optimizer, Tool-Use Loops, and Circuit Breakers.',
     icon: Icons.alt_route_rounded,
     accentColor: const Color(0xFFEA580C),
     keyConcepts: [
@@ -688,85 +688,157 @@ async function cachedConversation() {
       'Parallelization: Execute independent subtasks concurrently (Sectioning) or aggregate multiple views (Voting).',
       'Orchestrator-Workers: A central orchestrator breaks down complex goals and dynamically coordinates worker agents.',
       'Evaluator-Optimizer Loop: A generator produces candidate solutions while a critic evaluates against rubrics.',
+      'Autonomous Tool Use Loop: Continuous messages.create cycle checking stop_reason == "tool_use" until "end_turn".',
+      'Circuit Breakers: Enforcing deterministic max iteration caps, token limits, and state-hash loop detection.',
     ],
     fullGuideMarkdown: '''
 ### The 5 Canonical Agentic Design Patterns
 
 Anthropic’s landmark research paper *"Building Effective Agents"* demonstrates that successful enterprise agents prioritize **simplicity, predictability, and composability** over unpredictable autonomous loops.
 
-#### 1. Prompt Chaining
-Best for multi-step tasks with verification gates.
-`[Input] ➔ [Drafting Step] ➔ [Validation Gate] ➔ [Refining Step] ➔ [Output]`
+---
 
-#### 2. Routing Gate
-Direct requests to specialized prompts or cheaper models:
-- Simple FAQ? Route to Claude 3.5 Haiku.
-- Heavy architectural refactoring? Route to Claude 3.7 Sonnet with Extended Thinking.
+### 1. Structural Breakdown: Point, Reason, Example, Conclusion
 
-#### 3. Orchestrator-Workers
-A lead orchestrator LLM analyzes a multifaceted task, breaks it down into subtasks, delegates them in parallel to worker LLMs, and synthesizes the outputs.
+#### A. Prompt Chaining
+- **Point**: Decompose complex tasks into linear, deterministic pipelines where intermediate verification gates validate each transformation.
+- **Reason**: Single mega-prompts suffer from attention degradation and hallucination on multi-step workflows. Chaining isolates failure domains.
+- **Example**: `Raw Document ➔ [Step 1: Extract Entities] ➔ [Gate: JSON Validator] ➔ [Step 2: Generate Summary] ➔ [Step 3: Translate]`.
+- **Conclusion**: Use prompt chaining whenever a task has fixed, predictable sub-stages requiring quality checkpoints between phases.
 
-#### 4. Evaluator-Optimizer (Generator-Critic)
-One model generates code; a second evaluator model executes static analysis and tests. If tests fail, the critique is passed back to the generator in a loop until criteria are met.
+#### B. Routing Gate
+- **Point**: Classify user intent early and dispatch to specialized prompt templates or cost-optimal model tiers.
+- **Reason**: Running simple classification or retrieval queries on Claude 3.7 Sonnet wastes budget and increases latency. Routing to Claude 3.5 Haiku reduces cost by 80% with sub-second response times.
+- **Example**: Intent classifier dispatches billing FAQs to Haiku, and complex code refactoring to Sonnet 3.7 with Extended Thinking.
+- **Conclusion**: Routing maximizes cost-efficiency and enables hyper-specialized system instructions per domain.
+
+#### C. Parallelization (Sectioning & Voting)
+- **Point**: Execute independent subtasks concurrently and aggregate outputs programmatically.
+- **Reason**: Eliminates sequential latency bottlenecks and enables consensus mechanisms (self-consistency voting).
+- **Example**: Sectioning: Spawning 3 concurrent LLM calls to audit iOS Privacy Manifest, Swift 6 Concurrency, and Link Map binary size. Voting: Generating 5 candidate regex patterns and picking the majority consensus.
+- **Conclusion**: Best for high-throughput batch operations and high-stakes reasoning requiring agreement verification.
+
+#### D. Orchestrator-Workers
+- **Point**: A central orchestrator dynamically plans, breaks down unpredictable tasks into subtasks, delegates to worker agents, and synthesizes results.
+- **Reason**: Indispensable when subtasks cannot be predetermined ahead of time (e.g. exploratory debugging, large codebase refactoring).
+- **Example**: Anthravity orchestrator spawns research subagents with isolated context windows, collects findings, and generates unified architecture plans.
+- **Conclusion**: The gold standard for open-ended, complex developer agent workflows.
+
+#### E. Evaluator-Optimizer (Generator-Critic Loop)
+- **Point**: A generator model produces candidate solutions, while an evaluator model (or automated compiler/test suite) critiques and refines iteratively.
+- **Reason**: LLMs excel at critiquing and detecting flaws in existing text much better than generating flawless output in turn 1.
+- **Example**: Generator writes Swift 6 actor code; Evaluator compiles with `-strict-concurrency=complete`. If warnings occur, feedback loops back to Generator.
+- **Conclusion**: Essential for production code generation, mathematical proofs, and schema compliance.
+
+---
+
+### 2. Seniority Calibration: Junior vs Senior vs Principal
+
+| Dimension | Junior Engineer | Senior Engineer | Principal / Staff Architect |
+|---|---|---|---|
+| **Agent Design** | Wraps an open-source autonomous loop (AutoGPT/CrewAI) without guardrails. | Implements predictable workflows (Chaining & Routing) with strict `max_iterations = 3`. | Architects composable subagent swarms with isolated context windows and zero context pollution. |
+| **Tool Calling** | Executes raw bash or SQL directly from model outputs. | Sanitizes JSON schema parameters and validates tools with strict Pydantic/Zod schemas. | Enforces Human-in-the-Loop (HITL) authorization gates, audit trails, and zero-trust sandbox execution. |
+| **Error Recovery** | Crashes or throws on invalid tool output. | Feeds `tool_result` errors back to Claude so the model self-corrects in turn 2. | Implements SHA256 state-hashing to detect cycling loops, budget circuit breakers, and deterministic fallback models. |
+| **Cost & Latency** | Sends entire history repeatedly without caching. | Leverages Anthropic Ephemeral Prompt Caching (90% discount) and classifies with Haiku. | Designs cross-cloud deployment topologies (Bedrock vs Vertex), token velocity meters, and ROI tracking. |
 ''',
-    pythonCodeSnippet: '''# Evaluator-Optimizer Loop in Python
+    pythonCodeSnippet: '''# Production-Grade Autonomous Tool Use Loop with Circuit Breakers
 import anthropic
 
 client = anthropic.Anthropic()
 
-def generator(prompt: str, feedback: str = "") -> str:
-    messages = [{"role": "user", "content": prompt}]
-    if feedback:
-        messages.append({"role": "user", "content": f"Feedback on previous draft: {feedback}\\nPlease fix."})
-    res = client.messages.create(model="claude-3-5-sonnet-20241022", max_tokens=1000, messages=messages)
-    return res.content[0].text
+def execute_local_tool(tool_name: str, tool_input: dict) -> str:
+    if tool_name == "get_weather":
+        return f"Weather in {tool_input['location']}: 72°F, Sunny."
+    return "Error: Unknown tool."
 
-def evaluator(draft: str) -> dict:
-    prompt = f"Evaluate this code for memory leaks and edge cases:\\n{draft}\\nReturn PASS or FAIL with reasons."
-    res = client.messages.create(model="claude-3-5-sonnet-20241022", max_tokens=500, messages=[{"role": "user", "content": prompt}])
-    text = res.content[0].text
-    return {"passed": "PASS" in text, "feedback": text}
+def run_agentic_loop(user_prompt: str, max_iterations: int = 5):
+    messages = [{"role": "user", "content": user_prompt}]
+    tools = [{
+        "name": "get_weather",
+        "description": "Fetch real-time weather conditions for a given city.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"location": {"type": "string"}},
+            "required": ["location"]
+        }
+    }]
 
-# The Optimization Loop (Max 3 iterations)
-code_draft = generator("Write a thread-safe singleton in Python.")
-for iteration in range(3):
-    eval_result = evaluator(code_draft)
-    if eval_result["passed"]:
-        print("Verification PASSED!")
-        break
-    print(f"Iteration {iteration+1} Feedback: {eval_result['feedback']}")
-    code_draft = generator("Write a thread-safe singleton in Python.", feedback=eval_result["feedback"])''',
-    typeScriptCodeSnippet: '''// Routing Pattern in TypeScript
+    for turn in range(max_iterations):
+        print(f"--- AGENT TURN {turn + 1} ---")
+        response = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            tools=tools,
+            messages=messages
+        )
+
+        # Check Termination Condition
+        if response.stop_reason == "end_turn":
+            print("Goal achieved deterministically!")
+            return response.content[0].text
+
+        elif response.stop_reason == "tool_use":
+            # Append assistant message with tool calls
+            messages.append({"role": "assistant", "content": response.content})
+
+            # Execute all requested tool calls
+            tool_results = []
+            for block in response.content:
+                if block.type == "tool_use":
+                    print(f"Executing tool: {block.name}({block.input})")
+                    result_data = execute_local_tool(block.name, block.input)
+                    tool_results.append({
+                        "type": "tool_result",
+                        "tool_use_id": block.id,
+                        "content": str(result_data)
+                    })
+
+            # Feed results back into conversation history
+            messages.append({"role": "user", "content": tool_results})
+
+    raise TimeoutError("Agent exceeded max_iterations circuit breaker!")''',
+    typeScriptCodeSnippet: '''// Evaluator-Optimizer Loop with Unit Test Feedback
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic();
 
-async function routeQuery(userQuery: string): Promise<string> {
-  // Classification Gate using fast Haiku
-  const classification = await anthropic.messages.create({
-    model: 'claude-3-5-haiku-20241022',
-    max_tokens: 20,
-    system: 'Classify as CODING, BILLING, or GENERAL. Return single word.',
-    messages: [{ role: 'user', content: userQuery }],
-  });
+async function optimizeCode(goal: string, maxIterations = 3): Promise<string> {
+  let draft = '';
+  let feedback = '';
 
-  const intent = classification.content[0].type === 'text' ? classification.content[0].text.trim() : 'GENERAL';
+  for (let iter = 1; iter <= maxIterations; iter++) {
+    const prompt = feedback 
+      ? `Goal: \${goal}\\nPrevious draft failed tests:\\n\${feedback}\\nProvide fixed code.`
+      : goal;
 
-  // Route to optimal model
-  if (intent === 'CODING') {
-    return runCodeSpecialist(userQuery); // Claude 3.7 Sonnet
-  } else {
-    return runGeneralSupport(userQuery); // Claude 3.5 Haiku
+    const res = await anthropic.messages.create({
+      model: 'claude-3-7-sonnet-20250219',
+      max_tokens: 2048,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    draft = res.content[0].type === 'text' ? res.content[0].text : '';
+
+    // Run Static Analysis / Test Evaluator Gate
+    const evaluation = await runLinterAndTests(draft);
+    if (evaluation.passed) {
+      console.log(`Passed all checks on iteration \${iter}!`);
+      return draft;
+    }
+    feedback = evaluation.errors.join('\\n');
   }
+  return draft;
 }''',
     bestPractices: [
       'Start with the simplest pattern (Prompt Chaining or Routing) before introducing autonomous loops.',
       'Always implement strict loop boundaries (`max_iterations = 3..5`) to prevent infinite recursion and budget drains.',
       'Use programmatic unit tests and schema validators as evaluators rather than relying solely on LLM self-evaluation.',
+      'Track cumulative token expenditure across loop turns and trip circuit breakers if thresholds are breached.',
     ],
     commonPitfalls: [
       'Giving an agent freeform bash access without sandboxing or human-in-the-loop confirmation.',
-      'Failing to preserve error trace history across agent iterations.',
+      'Failing to preserve tool error trace history across agent iterations, causing repetitive blind retries.',
+      'Polluting the main context window with verbose intermediate tool outputs instead of delegating to subagents.',
     ],
   ),
 
@@ -982,6 +1054,269 @@ async function analyzeInvoicePdf() {
     commonPitfalls: [
       'Supplying low-contrast or severely blurry screenshots where small text is illegible.',
       'Forgetting that PDFs larger than 32MB must be split or chunked before API transmission.',
+    ],
+  ),
+
+  // 10. Official Anthropic Claude Academy Curriculum
+  ClaudeDeveloperTopic(
+    id: 'claude_academy_catalog',
+    title: 'Anthropic Claude Academy Official Curriculum',
+    category: 'Foundations & Architecture',
+    masteryLevel: 'Intermediate',
+    summary:
+        'The comprehensive syllabus from academy.claude.com: Claude 101, Building with Claude API, Claude Code in Action, Model Context Protocol (MCP), and Enterprise Deployment.',
+    icon: Icons.school_rounded,
+    accentColor: const Color(0xFF0284C7),
+    keyConcepts: [
+      'Claude 101: Conversational fundamentals, prompt structuring, and context window economics.',
+      'Building with the Claude API: Client initialization, streaming, multimodal inputs, and function calling.',
+      'Claude Code 101 & In Action: Agentic CLI tool, permission checkpoints, CLAUDE.md architecture blueprints.',
+      'Model Context Protocol (MCP): Client-host-server topology, STDIO/SSE transports, resources, tools, prompts.',
+      'Agent Skills: Authoring modular, reusable markdown instruction bundles with prompt caching.',
+      'Deploying Claude Enterprise: SOC 2, HIPAA, Zero Data Retention (ZDR), AWS Bedrock vs Google Vertex AI.',
+    ],
+    fullGuideMarkdown: '''
+### Official Anthropic Claude Academy Curriculum (academy.claude.com)
+
+Anthropic’s official Claude Academy provides structured training pathways from initial prompting to enterprise-grade AI architecture.
+
+---
+
+### Course 1: Claude 101 (Foundations)
+- **Target**: All developers, product managers, and engineering leaders.
+- **Core Competencies**:
+  1. Conversational Mental Model: Understanding probabilistic token prediction vs deterministic logic.
+  2. The 200,000 Token Context Window: Ingesting entire libraries, specs, and repos in a single turn.
+  3. System Prompts: Defining persistent roles, operational constraints, and response schemas.
+  4. Few-Shot In-Context Learning: Guiding formatting via positive and negative exemplars.
+
+---
+
+### Course 2: Building with the Claude API
+- **Target**: Backend, mobile, and full-stack software engineers.
+- **Core Competencies**:
+  1. SDK Conventions: Official Python (`anthropic`) and TypeScript (`@anthropic-ai/sdk`) libraries.
+  2. Streaming Responses: Consuming Server-Sent Events (SSE) via `messages.stream()` to eliminate time-to-first-token (TTFT) latency.
+  3. Structured Output: Forcing JSON schemas using tool-calling contracts or XML delimiter extraction.
+  4. Multimodal Processing: Transmitting image payloads (PNG/JPEG/WEBP) and multi-page PDFs (base64 documents).
+
+---
+
+### Course 3: Claude Code 101 & Claude Code in Action
+- **Target**: Software engineers utilizing autonomous CLI tools.
+- **Core Competencies**:
+  1. Terminal-Native Agent: Running autonomous code refactoring, test execution, and git staging from the shell.
+  2. `CLAUDE.md` Architectural File: Teaching Claude repo-specific build commands, coding standards, and forbidden patterns.
+  3. Security Permission Gates: Enforcing human approval before executing destructive filesystem or git commands.
+  4. Compacting & Session Memory: Utilizing `/compact` to summarize verbose compiler logs and prevent context bloat.
+
+---
+
+### Course 4: Introduction to Model Context Protocol (MCP)
+- **Target**: Platform engineers and integration architects.
+- **Core Competencies**:
+  1. Open Standard: Decoupling LLMs from custom tool implementations via universal JSON-RPC 2.0 protocol.
+  2. MCP Primitives:
+     - **Tools**: Executable functions that Claude calls to take action.
+     - **Resources**: Read-only context (files, database rows, telemetry) attached to context.
+     - **Prompts**: Parameterized prompt templates exposed by the server.
+  3. Transports: Local subprocess execution via `STDIO` vs remote microservices via Server-Sent Events (`SSE`).
+
+---
+
+### Course 5: Deploying Claude Enterprise with Confidence
+- **Target**: Cloud architects, security officers, and enterprise leads.
+- **Core Competencies**:
+  1. Compliance & Security: Zero Data Retention (ZDR) guarantee—prompts and completions are never used for model training.
+  2. Enterprise Cloud Hosting: Deploying Claude models inside private AWS VPCs via Amazon Bedrock or Google Cloud Vertex AI.
+  3. Cost Governance: Ephemeral prompt caching (5-minute TTL, 90% savings) combined with model tiering (Haiku for triage, Sonnet for deep work).
+''',
+    pythonCodeSnippet: '''# Initializing Claude with System Instructions & Streaming
+import anthropic
+
+client = anthropic.Anthropic()
+
+with client.messages.stream(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    system="You are an Anthropic Certified Architect. Answer concisely in Markdown.",
+    messages=[{"role": "user", "content": "Explain Model Context Protocol in 3 bullets."}]
+) as stream:
+    for text in stream.text_stream:
+        print(text, end="", flush=True)''',
+    typeScriptCodeSnippet: '''// Streaming with TypeScript SDK
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic();
+
+async function streamClaude() {
+  const stream = await client.messages.stream({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 1024,
+    system: 'You are an Anthropic Certified Architect.',
+    messages: [{ role: 'user', content: 'What are the 3 primitives of MCP?' }],
+  });
+
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+      process.stdout.write(chunk.delta.text);
+    }
+  }
+}''',
+    bestPractices: [
+      'Complete Claude 101 and Building with Claude API before attempting autonomous agent loops.',
+      'Always configure CLAUDE.md in project roots to give Claude immediate context on testing and linting conventions.',
+      'Prefer MCP STDIO for local developer tooling and MCP SSE for centralized microservices.',
+    ],
+    commonPitfalls: [
+      'Treating Claude as a search engine rather than an in-context reasoning engine.',
+      'Omitting error recovery blocks in production streaming event listeners.',
+    ],
+  ),
+
+  // 11. Pearson VUE Claude Certifications Blueprint
+  ClaudeDeveloperTopic(
+    id: 'claude_certifications_blueprint',
+    title: 'Pearson VUE Claude Certifications Blueprint',
+    category: 'Advanced Systems Design',
+    masteryLevel: 'Master',
+    summary:
+        'Official examination blueprint for Anthropic’s Pearson VUE credentials: CCDV-F (Developer Foundations) and CCAR-F (Architect Foundations). Format, scoring, 7 exam domains, and pass strategies.',
+    icon: Icons.workspace_premium_rounded,
+    accentColor: const Color(0xFF9333EA),
+    keyConcepts: [
+      'Credential Tiers: CCAO-F (Associate), CCDV-F (Developer), CCAR-F (Architect), CCAR-P (Professional).',
+      'Delivery Format: Proctored via Pearson VUE (OnVUE or physical test center), 120 minutes, 60-70 questions.',
+      'Scoring Rubric: Scaled score 100-1000 with 720 minimum passing score (72%). Credly verified digital badge.',
+      'Domain 1: Anthropic Architecture & Model Selection (16.8%).',
+      'Domain 2: Prompt Engineering & Ephemeral Context Caching (18.4%).',
+      'Domain 3: Tool Use, Function Calling & Model Context Protocol MCP (21.2%).',
+      'Domain 4: Autonomous Agentic Workflows & Multi-Agent Orchestration (23.6%).',
+      'Domain 5: Safety, Guardrails, HITL & Responsible AI (12.0%).',
+      'Domain 6: Enterprise Cloud Infrastructure & Token Economics (8.0%).',
+    ],
+    fullGuideMarkdown: '''
+### Pearson VUE Claude Certification Blueprint (CCDV-F & CCAR-F)
+
+Anthropic’s official certification program validates verified hands-on engineering competence in advising, designing, and shipping production applications powered by Claude.
+
+---
+
+### 1. Program Specifications & Pearson VUE Proctoring
+
+- **Delivery Mechanism**: Pearson VUE Secure Browser (OnVUE remote proctoring with webcam/mic or authorized test center).
+- **Exam Duration**: 120 minutes (plus 10-minute NDA and tutorial).
+- **Question Types**: Multiple-Choice (Single Answer), Multiple-Response (Select All That Apply), Scenario-Based Architectural Cases.
+- **Passing Threshold**: 720 / 1000 scaled score (72%).
+- **Credential Validity**: 12 months with annual recertification cycle.
+- **Badge Provider**: Credly digital credential with verifiable cryptographic metadata.
+
+---
+
+### 2. The 7 CCDV-F Examination Domains
+
+#### Domain 1: Claude Architecture & Model Selection (16.8%)
+- Understanding differences between Claude 3.7 Sonnet (Hybrid Reasoning), Claude 3.5 Sonnet (Production Workhorse), and Claude 3.5 Haiku (Ultra-Low Latency).
+- Extended Thinking mechanics: Configuring `budget_tokens`, analyzing `<thinking>` blocks, locking temperature to 1.0.
+- Context window economics: Ingestion costs, output token boundaries, and sliding window management.
+
+#### Domain 2: Prompt Engineering & Ephemeral Context Caching (18.4%)
+- XML tag delimiters (`<instructions>`, `<context>`, `<documents>`, `<output_format>`).
+- Ephemeral prompt caching: Minimum 1,024 token threshold (Sonnet) or 2,048 tokens (Haiku), 5-minute TTL, `cache_control: {"type": "ephemeral"}`.
+- 90% cost reduction on cache hits and up to 85% latency reduction.
+
+#### Domain 3: Tool Use, Function Calling & MCP (21.2%)
+- Declaring JSON schema tool definitions with strict types and descriptions.
+- Processing `stop_reason == "tool_use"`, tool invocation, and returning `tool_result` content blocks.
+- Model Context Protocol (MCP) client-server communication via STDIO and SSE.
+
+#### Domain 4: Agentic Workflows & Multi-Agent Loops (23.6%)
+- The 5 canonical Anthropic design patterns: Prompt Chaining, Routing, Parallelization, Orchestrator-Workers, Evaluator-Optimizer.
+- Circuit breaker design: Hard iteration caps (`max_iterations = 3..5`), token velocity limits, and state-hash loop detection.
+- Subagent isolation: Spawning distinct worker agents to prevent main context window pollution.
+
+#### Domain 5: Security, Guardrails & Responsible AI (12.0%)
+- Human-in-the-Loop (HITL) checkpoints for destructive or irreversible actions.
+- Prompt injection defense: Separation of system instructions from untrusted user content via XML fencing.
+- Responsible scaling policy and content moderation filters.
+
+#### Domain 6: Enterprise Deployment & Cost Optimization (8.0%)
+- Deploying on Amazon Bedrock and Google Cloud Vertex AI vs direct Anthropic API.
+- Customer-Managed Encryption Keys (CMEK), VPC private endpoints, SOC 2 Type II compliance.
+- Zero Data Retention (ZDR) policy verification.
+
+---
+
+### 3. Senior vs Principal Level Question Strategies
+
+- **Senior Developer Strategy**: Focus on exact SDK method names, JSON syntax, stop reasons, and handling tool errors gracefully.
+- **Principal Architect Strategy**: Focus on system design trade-offs: when to avoid agents in favor of linear chains, how to minimize token costs via caching and Haiku routing, and how to structure enterprise governance.
+''',
+    pythonCodeSnippet: '''# Complete CCDV-F Candidate Implementation: Tool Calling + Caching + Extended Thinking
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.messages.create(
+    model="claude-3-7-sonnet-20250219",
+    max_tokens=4096,
+    thinking={"type": "enabled", "budget_tokens": 1024},
+    system=[
+        {
+            "type": "text",
+            "text": "You are a production code reviewer. Analyze code for memory leaks and race conditions.",
+            "cache_control": {"type": "ephemeral"}  # Ephemeral Cache Write (90% discount on subsequent turns)
+        }
+    ],
+    tools=[{
+        "name": "run_linter",
+        "description": "Execute static analysis on candidate code.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"code": {"type": "string"}},
+            "required": ["code"]
+        }
+    }],
+    messages=[{"role": "user", "content": "Review this Swift 6 Actor singleton for actor reentrancy."}]
+)
+
+print(f"Stop Reason: {response.stop_reason}")
+for block in response.content:
+    if block.type == "thinking":
+        print(f"Internal Thinking:\\n{block.thinking}\\n")
+    elif block.type == "text":
+        print(f"Output:\\n{block.text}")''',
+    typeScriptCodeSnippet: '''// Complete CCAR-F Pattern: Ephemeral Cache Read Verification
+import Anthropic from '@anthropic-ai/sdk';
+
+const client = new Anthropic();
+
+async function runCachedTurn() {
+  const response = await client.messages.create({
+    model: 'claude-3-5-sonnet-20241022',
+    max_tokens: 1024,
+    system: [
+      {
+        type: 'text',
+        text: 'Large 5,000-token system instruction detailing company compliance standards...',
+        cache_control: { type: 'ephemeral' }
+      }
+    ],
+    messages: [{ role: 'user', content: 'Audit PR #402.' }]
+  });
+
+  // Verify Cache Usage
+  console.log(`Cache Creation Tokens: \${response.usage.cache_creation_input_tokens}`);
+  console.log(`Cache Read Tokens: \${response.usage.cache_read_input_tokens}`);
+}''',
+    bestPractices: [
+      'Master all 7 exam domains before taking the timed Pearson VUE 120-minute test.',
+      'Always use prompt caching on large system prompts (>1024 tokens) to save 90% on API costs.',
+      'Know the exact stop_reason values: "end_turn", "tool_use", "max_tokens", "stop_sequence".',
+    ],
+    commonPitfalls: [
+      'Assuming Claude fine-tuning is required when RAG + Extended Thinking + Prompt Caching provides superior results.',
+      'Setting temperature when extended thinking is enabled (must be 1.0 or omitted).',
     ],
   ),
 ];

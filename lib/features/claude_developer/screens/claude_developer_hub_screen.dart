@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../ai_engineering/screens/ai_engineer_roadmap_screen.dart';
 import '../../certification/models/certification_models.dart';
 import '../../certification/screens/unified_exam_runner_screen.dart';
 import '../../claude_certification/screens/claude_curriculum_screen.dart';
 import '../models/claude_developer_topic.dart';
+import 'claude_agent_loop_simulator_screen.dart';
 import 'claude_caching_calculator_screen.dart';
 import 'claude_developer_topic_detail_screen.dart';
 import 'claude_tool_simulator_screen.dart';
@@ -11,7 +13,8 @@ import 'claude_tool_simulator_screen.dart';
 /// Complete Claude Developer Mastery Hub.
 /// Guides engineers from fundamental API calls to production-grade agentic architectures.
 class ClaudeDeveloperHubScreen extends StatefulWidget {
-  const ClaudeDeveloperHubScreen({super.key});
+  final bool hideAppBar;
+  const ClaudeDeveloperHubScreen({super.key, this.hideAppBar = false});
 
   @override
   State<ClaudeDeveloperHubScreen> createState() => _ClaudeDeveloperHubScreenState();
@@ -23,7 +26,7 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
   Color _tierColor(String tier) {
     switch (tier) {
       case 'Basic':
-        return const Color(0xFF10B981);
+        return const Color(0xFF059669); // Emerald-600 (Accessible 4.5:1 with white)
       case 'Intermediate':
         return const Color(0xFF0284C7);
       case 'Advanced':
@@ -66,53 +69,13 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
         ? claudeDeveloperTopics
         : claudeDeveloperTopics.where((t) => t.masteryLevel == _selectedTier).toList();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Claude Developer Mastery'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.alt_route_rounded, color: Color(0xFF818CF8)),
-            tooltip: 'AI Engineer & Claude Roadmap',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.school_rounded),
-            tooltip: 'Certification Guide',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ClaudeCurriculumScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
-            tooltip: 'Claude Certification Exam',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const UnifiedExamRunnerScreen(
-                    track: ExamTrack.claude,
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Hero Header Banner
-          Container(
-            padding: const EdgeInsets.all(22),
-            decoration: BoxDecoration(
+    final bodyContent = ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Hero Header Banner
+        Container(
+          padding: const EdgeInsets.all(22),
+          decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
                     ? [const Color(0xFF78350F), const Color(0xFF1E293B)]
@@ -153,7 +116,7 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
-                        '9 Modules • 3 Labs',
+                        '11 Modules • 4 Interactive Labs',
                         textAlign: TextAlign.end,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(color: Colors.white70, fontSize: 11.5),
@@ -192,13 +155,29 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
           ),
           const SizedBox(height: 10),
 
+          // Flagship Agent Loop Simulator Card
+          _buildLabActionCard(
+            context,
+            title: 'Agentic Looping Simulator',
+            subtitle: 'Evaluator-Optimizer, Tool Use Loop & Orchestrator Swarms',
+            icon: Icons.all_inclusive_rounded,
+            color: const Color(0xFF7C3AED),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ClaudeAgentLoopSimulatorScreen()),
+              );
+            },
+          ),
+          const SizedBox(height: 8),
+
           Row(
             children: [
               Expanded(
                 child: _buildLabActionCard(
                   context,
                   title: 'Tool Simulator',
-                  subtitle: 'Simulate tool_use ➔ tool_result loop',
+                  subtitle: 'tool_use ➔ tool_result loop',
                   icon: Icons.handyman_rounded,
                   color: const Color(0xFF0D9488),
                   onTap: () {
@@ -209,12 +188,12 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildLabActionCard(
                   context,
                   title: 'Caching ROI Calc',
-                  subtitle: 'Calculate 90% savings & latency',
+                  subtitle: '90% savings & latency',
                   icon: Icons.savings_rounded,
                   color: const Color(0xFF0284C7),
                   onTap: () {
@@ -250,30 +229,31 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: const Color(0xFFD97706).withAlpha(120)),
               ),
-              child: const Row(
-                children: [
+              child: Row(
+                children: const [
                   CircleAvatar(
                     backgroundColor: Color(0xFFD97706),
                     child: Icon(Icons.quiz_rounded, color: Colors.white, size: 20),
                   ),
                   SizedBox(width: 12),
+                ] + [
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           '10-Question Timed Mock Exam Simulator',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           'Pearson VUE 1000-point scoring • Domain performance diagnostics',
-                          style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.textSub(isDark)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFFD97706)),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFFD97706)),
                 ],
               ),
             ),
@@ -304,27 +284,27 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                   width: 1.2,
                 ),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.alt_route_rounded, color: Color(0xFF8B5CF6), size: 28),
-                  SizedBox(width: 14),
+                  const Icon(Icons.alt_route_rounded, color: Color(0xFF8B5CF6), size: 28),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'AI Engineering from Scratch Roadmap',
                           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                         ),
-                        SizedBox(height: 2),
+                        const SizedBox(height: 2),
                         Text(
                           'Child-to-Master progression: 523 lessons across 20 phases & Claude CCDV-F',
-                          style: TextStyle(fontSize: 11.5, color: Colors.grey),
+                          style: TextStyle(fontSize: 11.5, color: AppColors.textSub(isDark)),
                         ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF8B5CF6)),
+                  const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Color(0xFF8B5CF6)),
                 ],
               ),
             ),
@@ -367,9 +347,9 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 'Zero to Architect',
-                style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w600),
+                style: TextStyle(fontSize: 12, color: AppColors.textSub(isDark), fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -492,7 +472,53 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
             );
           }),
         ],
+      );
+
+    if (widget.hideAppBar) {
+      return bodyContent;
+    }
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Claude Developer Mastery'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.alt_route_rounded, color: Color(0xFF818CF8)),
+            tooltip: 'AI Engineer & Claude Roadmap',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AiEngineerRoadmapScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.school_rounded),
+            tooltip: 'Certification Guide',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ClaudeCurriculumScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
+            tooltip: 'Claude Certification Exam',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const UnifiedExamRunnerScreen(
+                    track: ExamTrack.claude,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
+      body: bodyContent,
     );
   }
 
@@ -538,7 +564,10 @@ class _ClaudeDeveloperHubScreenState extends State<ClaudeDeveloperHubScreen> {
               subtitle,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 11,
+                color: AppColors.textSub(Theme.of(context).brightness == Brightness.dark),
+              ),
             ),
           ],
         ),

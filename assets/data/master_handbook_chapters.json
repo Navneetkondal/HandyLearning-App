@@ -1,0 +1,370 @@
+[
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. What are the main Swift dispatch mechanisms?",
+      "Q2. What is a witness table?",
+      "Q3. some vs any ?",
+      "Q4. What is type erasure?",
+      "Q5. Why can final improve performance?",
+      "Q6. What is method swizzling?",
+      "Q7. What is generic specialization?",
+      "Q8. What is Copy-on-Write?",
+      "Q9. What is the difference between size and stride ?",
+      "Q10. What happens conceptually when Swift code is compiled?"
+    ],
+    "title" : "Core Swift Language",
+    "summary" : "Comprehensive technical coverage across pages 4 to 108",
+    "pageCount" : 105,
+    "chapterNumber" : 1,
+    "endPage" : 108,
+    "deepDiveCodeSnippet" : "\nPage 106\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\n→ No. Sendable describes whether a value can safely cross concurrency boundaries; ownership describes lifetime and transfer.\nQ10. Are stru\ncts always physically copied?\n→ No. Stru\ncts have value semantics,\nbut Swift can optimize storage and standard library collections commonly use COW.\n🧠 Final Mental Model\nSWIFT VALUE\n│\n┌───────────┼───────────┐\n↓ ↓ ↓\nBorrow Mutate Consume\n│ │ │\nborrowing inout consuming\n│ │ │\n└───────────┼───────────┘\n↓\nOwnership\n│\n┌───────────┼───────────┐\n↓ ↓ ↓\nCopy Move Lifetime\n│ │ │\nCOW ~Copyable ARC\n│\n↓\nConcurrency\n│\nSendable\n│\nActor Isolation\n🔥 Senior rule\nDon't think only in terms of \"value type vs reference type.\" Think in terms of ownership,\nborrowing, m\nutation,\ncopying, lifetime,\nexclusivity, and safe transfer across concurrency boundaries.\nThe next logical module is Advanced Swift Testing & Test Architecture — XCTest, Swift Testing, async tests, mocks, spies, stubs,\ndependency injection, deterministic tests, and testing actors\/concurrency.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n1.11 Produ\nction Code Deep-Dive: Advanced Swift Type System,\nMove Semantics & Dispatch\nA. Custom Copy-on-Write (CoW) Stru\nct Implementation\nIn Swift, standard collections ( Array, Dictionary, Set ) use Copy-on-Write automatically. When implementing custom value types that\nwrap heap-allocated storage,\nuse isKnownUniquelyReferenced to achieve identical value semantics with zero unnecessary copies:\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 107\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nfinal class BufferStorage<Element> {\nvar elements: [Element]\ninit(elements: [Element] = []) {\nself.elements = elements\n}\n}\nstruct FastBuffer<T> {\nprivate var storage: BufferStorage<T>\ninit() {\nself.storage = BufferStorage()\n}\nvar count: Int {\nstorage.elements.count\n}\nmutating func append(\n_\nelement: T) {\n\/\/ Only allocate a new heap buffer if multiple references point to storage\nif !isKnownUniquelyReferenced(&storage) {\nstorage = BufferStorage(elements: storage.elements)\n}\nstorage.elements.append(element)\n}\nsubscript(index: Int) -> T {\nget { storage.elements[index] }\nset {\nif !isKnownUniquelyReferenced(&storage) {\nstorage = BufferStorage(elements: storage.elements)\n}\nstorage.elements[index] = newValue\n}\n}\n}\nB. Swift 5.9+ \/ 6 O\nwnership, Non-Copyable Types & Move Semantics\nNon-copyable types (~Copyable ) model uniq\nue hardware or system resources (e.g. file descriptors,\ncryptographic keys, database locks) that\nm\nust never be implicitly du\nplicated:\nstruct FileHandleWrapper: ~Copyable {\nprivate let fd: Int32\ninit(path: String) {\nself.fd = open(path, O\n_\nRDONLY)\n}\n\/\/ Borrowing method: Caller retains ownership; method cannot consume or close\nborrowing func readBytes(count: Int) -> [UInt8] {\nvar buffer = [UInt8](repeating: 0, count: count)\nread(fd, &buffer, count)\nreturn buffer\n}\n\/\/ Consuming method: Ownership transferred to method; caller cannot use handle afterward\nconsuming func closeHandle() {\nclose(fd)\ndiscard self\n}\ndeinit {\nif fd >= 0 { close(fd) }\n}\n}\nfunc processFile() {\nlet handle = FileHandleWrapper(path: \"\/var\/log\/app.log\")\nlet bytes = handle.readBytes(count: 64)\n\/\/ Consumes handle; handle cannot be used after this call\nhandle.closeHandle()\n}\nC.\nMethod Dispatch Matrix: Static vs Table vs Message Dispatch\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 4,
+    "subtitle" : "Swift Type System, Language Core, Ownership & OOP"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q2. How would you debug a memory leak?",
+      "Q3. Is every memory increase a leak?",
+      "Q4. Why is [weak self] not a universal solution?",
+      "Q5. How would you optimize a laggy UICollectionView?",
+      "Q6. How do you optimize app launch?",
+      "Q7. What is the difference between memory optimization and performance optimization?",
+      "Q8. What is the frame budget at 60 FPS?"
+    ],
+    "title" : "Memory & Runtime",
+    "summary" : "Comprehensive technical coverage across pages 109 to 145",
+    "pageCount" : 37,
+    "chapterNumber" : 2,
+    "endPage" : 145,
+    "deepDiveCodeSnippet" : "\nPage 144\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nObserve\n↓\nMeasure\n↓\nProfile\n↓\nIdentify\n↓\nHypothesis\n↓\nOptimize\n↓\nVerify\n↓\nMonitor\nGolden rule\nNever optimize what you haven't measured.\nAnd for memory:\nO\nwnership determines lifetime; lifetime determines memory.\nNext module\nAdvanced iOS App Lifecycle, Background Execution & System Scheduling — scene lifecycle, foreground\/background transitions,\nBGTaskScheduler,\nbackground refresh vs processing, U\nR\nLSession background transfers, silent p\nush,\nbackground location, task expiration,\nsystem scheduling, state restoration, termination, force-q\nuit behavior, and produ\nction background architecture.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n2.5 Produ\nction Code Deep-Dive: Memory Engineering, Side Tables & Low-Level Footprint\nA. Side Table Trigger & Weak Reference Pointer Anatomy\nWhen an object is referenced by weak, Swift allocates an out-of-line HeapO\nbjectSideTableEntry so the original 64-bit object header does\nnot overflow its inline unowned\/weak bitfield:\nfinal class UserAccount {\nlet id: UUID = UUID()\nvar name: String = \"Navneet\"\ndeinit { print(\"UserAccount deallocated cleanly\") }\n}\nfinal class SessionCoordinator {\n\/\/ Under the hood: Pointing to side table entry.\n\/\/ When UserAccount deallocates, side table sets this pointer to nil without scanning heap.\nweak var activeAccount: UserAccount?\nfunc printStatus() {\nif let account = activeAccount {\nprint(\"Session alive for: \\(account.name)\")\n} else {\nprint(\"Account deallocated\")\n}\n}\n}\nB. Autorelease Pool Memory Drainage in Heavy Loops\nWithout autoreleasepool, autoreleased O\nbjective-C objects (e.g. UIImage, NSData, NSString ) accu\nm\nulate until the main R\nunLoop\ncycle turns, triggering high memory watermarks and Jetsam kills:\nfunc processLargeImageBatch(imageURLs: [URL]) {\nfor url in imageURLs {\n\/\/ Drains autoreleased allocations on EVERY iteration immediately\nautoreleasepool {\nguard let data = try? Data(contentsOf: url),\nlet image = UIImage(data: data) else { return }\nlet thumbnail = image.preparingThumbnail(of: CGSize(width: 100, height: 100))\nsaveToDisk(thumbnail)\n}\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 145\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nC.\nReal-Time Mach Kernel Memory Footprint Calculation\nUse task\n_\ninfo with TASK\n_\nVM\n_\nINFO to measure physical dirty memory (the metric used by Apple's Jetsam daemon to terminate apps):\nimport MachO\nstruct MemoryFootprintMetrics {\nstatic func currentFootprintBytes() -> UInt64 {\nvar vmInfo = task\n_\nvm\n_\ninfo\n_\ndata\n_\nt()\nvar count = mach\n_\nmsg_\ntype\n_\nnumber\n_\nt(MemoryLayout<task\n_\nvm\n_\ninfo\n_\ndata\n_\nt>.size \/ MemoryLayout<integer\n_\nt>.size)\nlet kernResult = withUnsafeMutablePointer(to: &vmInfo) {\n$0.withMemoryRebound(to: integer\n_\nt.self, capacity: Int(count)) {\ntask\n_\ninfo(mach\n_\ntask\n_\nself\n_, task\n_\nflavor\n_\nt(TASK\n_\nVM\n_\nINFO), $0, &count)\n}\n}\nguard kernResult == KERN\n_\nSUCCESS else { return 0 }\n\/\/ phys\n_\nfootprint is the exact metric iOS Jetsam monitors\nreturn UInt64(vmInfo.phys\n_\nfootprint)\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 109,
+    "subtitle" : "Memory Management, ARC Internals & Low-Level Memory Engineering"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "1. Can I eliminate shared mutable state?",
+      "2. Can I use immutable value types?",
+      "3. Can ownership be transferred?",
+      "Q1. Actor vs lock?",
+      "Q2. Does an actor run on its own thread?",
+      "Q3. What is actor reentrancy?",
+      "Q4. Can actors still have logical race conditions?",
+      "Q5. What is Sendable?",
+      "Q6. Why use @unchecked Sendable ?",
+      "Q7. Task vs Task.detached ?"
+    ],
+    "title" : "Concurrency & Safety",
+    "summary" : "Comprehensive technical coverage across pages 146 to 204",
+    "pageCount" : 59,
+    "chapterNumber" : 3,
+    "endPage" : 204,
+    "deepDiveCodeSnippet" : "\nPage 203\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n3.6 Produ\nction Code Deep-Dive: Swift 6 Concurrency, AsyncStream & Custom Actors\nA. Actor Re-entrancy Bug vs Safe Atomic Re-verification\nActor methods are re-entrant across suspension points ( await ). While suspended, other concurrent tasks can m\nutate actor state:\nactor BankAccountActor {\nprivate var balance: Decimal = 1000\n\/\/ ❌ VULNERABLE: Balance can change during server authorization!\nfunc withdrawUnsafe(amount: Decimal) async throws {\nguard balance >= amount else { throw BankError.insufficientFunds }\ntry await authorizeWithServer() \/\/ Suspension point!\nbalance -= amount \/\/ Overdraft risk!\n}\n\/\/ ✅ SAFE: Re-verify invariants after suspension point before applying state mutation\nfunc withdrawSafe(amount: Decimal) async throws {\ntry await authorizeWithServer()\nguard balance >= amount else { throw BankError.insufficientFunds }\nbalance -= amount\n}\nprivate func authorizeWithServer() async throws {\ntry await Task.sleep(nanoseconds: 100\n_\n000\n_\n000)\n}\nenum BankError: Error { case insufficientFunds }\n}\nB. Cooperative Task Cancellation Handling\nfunc processLargeDataSet(\n_\nitems: [String]) async throws -> [String] {\nvar results: [String] = []\nfor item in items {\n\/\/ Throws CancellationError if parent task was cancelled\ntry Task.checkCancellation()\nresults.append(item.uppercased())\n}\nreturn results\n}\nC. TaskGrou\np with Dynamic Worker Throttling\nPrevent thread pool starvation and memory spikes when processing thousands of concurrent items:\nfunc downloadAllAssets(urls: [URL], maxConcurrent: Int = 4) async throws -> [Data] {\ntry await withThrowingTaskGroup(of: Data.self) { group in\nvar results: [Data] = []\nvar urlIterator = urls.makeIterator()\n\/\/ Seed initial batch of workers\nfor\n_\nin 0..<maxConcurrent {\nif let url = urlIterator.next() {\ngroup.addTask {\nlet (data, _\n) = try await URLSession.shared.data(from: url)\nreturn data\n}\n}\n}\n\/\/ As each task finishes, spawn the next task dynamically\nfor try await data in group {\nresults.append(data)\nif let nextURL = urlIterator.next() {\ngroup.addTask {\nlet (nextData, _\n) = try await URLSession.shared.data(from: nextURL)\nreturn nextData\n}\n}\n}\nreturn results\n}\n}\nD. OSAllocatedUnfairLock: Zero-Allocation High-Speed Mutual Exclusion\nIn Swift 6, replace DispatchQueue synchronization with OSAllocatedUnfairLock :\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 204\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport os\nfinal class ThreadSafeMetricsCollector: Sendable {\nprivate struct State {\nvar eventCounts: [String: Int] = [:]\n}\nprivate let state = OSAllocatedUnfairLock(initialState: State())\nfunc track(event: String) {\nstate.withLock { state in\nstate.eventCounts[event, default: 0] += 1\n}\n}\nfunc count(for event: String) -> Int {\nstate.withLock { $0.eventCounts[event] ?? 0 }\n}\n}\nE. AsyncStream: Bridging Legacy Delegates \/ Callbacks to Stru\nctured Concurrency\nimport CoreLocation\nfinal class LocationStreamProvider: NSObject, CLLocationManagerDelegate {\nprivate let manager = CLLocationManager()\nprivate var continuation: AsyncStream<CLLocation>.Continuation?\nvar locations: AsyncStream<CLLocation> {\nAsyncStream { [weak self] continuation in\nself?.continuation = continuation\nself?.manager.delegate = self\nself?.manager.startUpdatingLocation()\ncontinuation.onTermination = { [weak self]\n_\nin\nself?.manager.stopUpdatingLocation()\n}\n}\n}\nfunc locationManager(\n_\nmanager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {\nfor location in locations {\ncontinuation?.yield(location)\n}\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 146,
+    "subtitle" : "Swift Concurrency, Multithreading & Structured Concurrency"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q2. Why use a UseCase?",
+      "Q3. Why use Repository?",
+      "Q4. Where should URLSession live?",
+      "Q6. What is the Composition Root?",
+      "Q7. Coordinator vs ViewController?",
+      "Q8. Why modularize an iOS app?",
+      "Q9. How would you avoid circular module dependencies?",
+      "Q10. Should every feature have its own module?",
+      "Q12. How do you isolate third-party SDKs?",
+      "Q14. What is the biggest mistake in Clean Architecture?"
+    ],
+    "title" : "Architecture & Patterns",
+    "summary" : "Comprehensive technical coverage across pages 205 to 283",
+    "pageCount" : 79,
+    "chapterNumber" : 4,
+    "endPage" : 283,
+    "deepDiveCodeSnippet" : "\nPage 282\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nFactory\nBuilder\nAdapter\nDecorator\nFacade\nStrategy\n...\nMemorize the problem → solution relationship:\nPROBLEM\n│\n┌───────────┼───────────┐\n↓ ↓ ↓\nCreation Behavior Structure\n│ │ │\nFactory Strategy Adapter\nBuilder State Decorator\nCommand Facade\nProxy\nAnd at architecture level:\nApplication\n│\n┌────────┼────────┐\n↓ ↓ ↓\nFeatures Domain Infrastructure\n│ │ │\n└─────── Patterns ┘\n│\n↓\nClear boundaries\nGolden rule\nPatterns are tools, not goals. If a pattern makes the design harder to understand, don't use it.\nNext module\nAdvanced iOS Memory Management & Performance Engineering — ARC internals, retain cycles, autorelease pools, memory graphs, leaks,\nallocations,\ncopy-on-write performance, image memory,\ncaching, scrolling performance, launch optimization, Instru\nments, energy impact, and\nprodu\nction performance profiling.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n4.7 Produ\nction Code Deep-Dive: Architecture, Pure DI & Coordinator Pattern\nA. Complete Navigation Coordinator Pattern with NavigationStack\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 283\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport UIKit\n@MainActor\nprotocol Coordinator: AnyObject {\nvar childCoordinators: [Coordinator] { get set }\nvar navigationController: UINavigationController { get set }\nfunc start()\n}\n@MainActor\nfinal class AppCoordinator: Coordinator {\nvar childCoordinators: [Coordinator] = []\nvar navigationController: UINavigationController\ninit(navigationController: UINavigationController) {\nself.navigationController = navigationController\n}\nfunc start() {\nlet authCoordinator = AuthCoordinator(navigationController: navigationController)\nauthCoordinator.onAuthSuccess = { [weak self] in\nself?.showHomeFlow()\n}\nchildCoordinators.append(authCoordinator)\nauthCoordinator.start()\n}\nprivate func showHomeFlow() {\nchildCoordinators.removeAll()\nlet homeCoordinator = HomeCoordinator(navigationController: navigationController)\nchildCoordinators.append(homeCoordinator)\nhomeCoordinator.start()\n}\n}\nB. Pure Dependency Injection & Composition Root\nAvoid Service Locator and global singletons by constru\ncting the full object graph in the Composition Root at app launch:\n\/\/ Domain Layer\nprotocol FetchOrdersUseCase {\nfunc execute() async throws -> [Order]\n}\n\/\/ Composition Root (AppDelegate \/ SceneDelegate \/ App Entrypoint)\nfinal class AppCompositionRoot {\nstatic func makeOrdersViewController() -> UIViewController {\nlet session = URLSession(configuration: .ephemeral)\nlet apiClient = APIClient(session: session)\nlet orderRepository = DefaultOrderRepository(remoteSource: apiClient)\nlet useCase = DefaultFetchOrdersUseCase(repository: orderRepository)\nlet viewModel = OrdersViewModel(fetchOrdersUseCase: useCase)\nreturn OrdersViewController(viewModel: viewModel)\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 205,
+    "subtitle" : "Software Architecture, SOLID Principles & Design Patterns"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. Why does scrolling become janky?",
+      "Q2. What is the 60 FPS frame budget?",
+      "Q3. What is the 120 FPS frame budget?",
+      "Q4. What is offscreen rendering?",
+      "Q6. Why is image decoding expensive?",
+      "Q8. What is overdraw?",
+      "Q9. setNeedsLayout() vs layoutIfNeeded() ?",
+      "Q10. setNeedsDisplay() vs setNeedsLayout() ?",
+      "Q11. Does SwiftUI redraw the entire screen whenever state changes?",
+      "Q12. How would you debug a slow SwiftUI screen?"
+    ],
+    "title" : "UI & Graphics Engine",
+    "summary" : "Comprehensive technical coverage across pages 284 to 334",
+    "pageCount" : 51,
+    "chapterNumber" : 5,
+    "endPage" : 334,
+    "deepDiveCodeSnippet" : "\nPage 333\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nUSER\n↓\nEVENT\n↓\nUIWindow \/ Scene\n↓\nHit Testing\n↓\nUIView\n↓\nResponder Chain\n↓\nView Controller\n↓\nState\/Data\n↓\nLayout \/ Display\n↙ ↘\nAuto Layout Drawing\n↓ ↓\nCALayer\n↓\nCore Animation\n↓\nCompositor\n↓\nDISPLAY\nThe senior rule\nUIKit isn't just a collection of views. Think in terms of event delivery, responder chains, lifecycle, layout invalidation,\nrendering\/compositing, and frame budgets.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n5.6 Produ\nction Code Deep-Dive: Advanced UIKit, Diffable Data Sources & Hit-Testing\nA. UICollectionViewDiffableDataSource with Compositional Layout\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 334\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport UIKit\nfinal class FeedViewController: UIViewController {\nenum Section: Hashable { case main }\nstruct Item: Hashable {\nlet id: UUID = UUID()\nlet title: String\n}\nprivate var collectionView: UICollectionView!\nprivate var dataSource: UICollectionViewDiffableDataSource<Section, Item>!\noverride func viewDidLoad() {\nsuper.viewDidLoad()\nconfigureLayout()\nconfigureDataSource()\napplyInitialSnapshot()\n}\nprivate func configureLayout() {\nlet itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(60))\nlet item = NSCollectionLayoutItem(layoutSize: itemSize)\nlet groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1.0), heightDimension: .estimated(60))\nlet group = NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: [item])\nlet section = NSCollectionLayoutSection(group: group)\nsection.interGroupSpacing = 8\ncollectionView = UICollectionView(frame: view.bounds, collectionViewLayout:\nUICollectionViewCompositionalLayout(section: section))\nview.addSubview(collectionView)\n}\nprivate func configureDataSource() {\nlet cellRegistration = UICollectionView.CellRegistration<UICollectionViewListCell, Item> { cell, indexPath, item\nin\nvar content = cell.defaultContentConfiguration()\ncontent.text = item.title\ncell.contentConfiguration = content\n}\ndataSource = UICollectionViewDiffableDataSource<Section, Item>(collectionView: collectionView) { collectionView,\nindexPath, item in\ncollectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: item)\n}\n}\nprivate func applyInitialSnapshot() {\nvar snapshot = NSDiffableDataSourceSnapshot<Section, Item>()\nsnapshot.appendSections([.main])\nsnapshot.appendItems([Item(title: \"Architecture\"), Item(title: \"Concurrency\")])\ndataSource.apply(snapshot, animatingDifferences: true)\n}\n}\nB. Hit-Testing: Tou\nch Area Expansion without Modifying View Frame\nimport UIKit\nfinal class ExpandedTouchButton: UIButton {\nvar touchPadding: UIEdgeInsets = UIEdgeInsets(top: 15, left: 15, bottom: 15, right: 15)\noverride func point(inside point: CGPoint, with event: UIEvent?) -> Bool {\nlet hitFrame = bounds.inset(by: UIEdgeInsets(\ntop: -touchPadding.top,\nleft: -touchPadding.left,\nbottom: -touchPadding.bottom,\nright: -touchPadding.right\n))\nreturn hitFrame.contains(point)\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 284,
+    "subtitle" : "UIKit Internals, Auto Layout & View Rendering Architecture"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. Is SwiftUI View a UI object?",
+      "Q2. Does changing state rebuild the entire UI?",
+      "Q3. Why is identity important?",
+      "Q4. @State vs @Binding ?",
+      "Q5. @StateObject vs @ObservedObject ?",
+      "Q6. What is modern replacement for many ObservableObject use cases?",
+      "Q7. Why shouldn't expensive work happen inside body ?",
+      "Q8. Why can unstable IDs cause bugs?",
+      "Q9. .task vs .onAppear ?",
+      "Q10. How does SwiftUI interoperate with UIKit?"
+    ],
+    "title" : "Modern Declarative UI",
+    "summary" : "Comprehensive technical coverage across pages 335 to 370",
+    "pageCount" : 36,
+    "chapterNumber" : 6,
+    "endPage" : 370,
+    "deepDiveCodeSnippet" : "\nPage 369\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\n→ SwiftUI may interpret logically identical items as different views,\ncausing state loss, incorrect animations, or inefficient u\npdates.\nQ9. .task vs .onAppear ?\n→ .task is designed for asynchronous work associated with view lifecycle and provides stru\nctured cancellation behavior; .onAppear is a\ngeneral lifecycle callback.\nQ10. How does SwiftUI interoperate with UIKit?\n→ UIHostingController embeds SwiftUI in UIKit; UIViewRepresentable and UIViewControllerRepresentable embed UIKit\ncomponents in SwiftUI.\n🧠 Final Mental Model\nSTATE\n│\n↓\nDependency Tracking\n│\n↓\nbody\n│\n↓\nView Description\n│\n↓\nIdentity + Diff\n│\n┌──────┴──────┐\n↓ ↓\nLayout Rendering\n│ │\n└──────┬──────┘\n↓\nUI\n│\n↓\nUser Action\n│\n↓\nState Mutation\n│\n└──────────────→\n🔥 Senior rule\nSwiftUI is fundamentally a state-driven reconciliation system.\nMaster state ownership, identity, dependency tracking, and data\nflow first; property wrappers are just tools implementing those concepts.\nNext\nAdvanced iOS System Design — scalable architecture, networking,\ncaching, persistence, offline-first design, authentication,\npagination, deep links, p\nush notifications, modularization, observability, and designing a produ\nction app at Senior\/Lead level.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n6.4 Produ\nction Code Deep-Dive: SwiftUI O\nbservation, Eq\nuatableView & Custom Environment\nA. iOS 17+ O\nbservation Framework (@O\nbservable)\nReplaces ObservableObject, @Published, and @ObservedObject with fine-grained compiler-synthesized tracking:\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 370\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport SwiftUI\nimport Observation\n@Observable\nfinal class UserProfileState {\nvar name: String = \"Navneet\"\nvar lastLogin: Date = Date()\n\/\/ Subscriptions only trigger for views that actually read the specific property mutated!\n}\nstruct UserHeaderView: View {\nvar state: UserProfileState\nvar body: some View {\n\/\/ Redraws ONLY when state.name changes. Does NOT redraw when state.lastLogin changes!\nText(\"Welcome, \\(state.name)\")\n.font(.headline)\n}\n}\nB. Custom EnvironmentKey & View Modifier Injection\nimport SwiftUI\nprivate struct AccentThemeKey: EnvironmentKey {\nstatic let defaultValue: Color = .blue\n}\nextension EnvironmentValues {\nvar accentTheme: Color {\nget { self[AccentThemeKey.self] }\nset { self[AccentThemeKey.self] = newValue }\n}\n}\nextension View {\nfunc accentTheme(\n_\ncolor: Color) -> some View {\nenvironment(\\.accentTheme, color)\n}\n}\nC. Custom Two-Way Binding: Intercepting & Transforming State\nimport SwiftUI\nfunc makeUppercaseBinding(for text: Binding<String>) -> Binding<String> {\nBinding(\nget: { text.wrappedValue.uppercased() },\nset: { text.wrappedValue = $0.uppercased() }\n)\n}\nD. Child-to-Ancestor Layout Comm\nunication via PreferenceKey\nstruct HeightPreferenceKey: PreferenceKey {\nstatic var defaultValue: CGFloat = 0\nstatic func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {\nvalue = max(value, nextValue())\n}\n}\nstruct MeasureHeightModifier: ViewModifier {\nfunc body(content: Content) -> some View {\ncontent.background(\nGeometryReader { proxy in\nColor.clear.preference(key: HeightPreferenceKey.self, value: proxy.size.height)\n}\n)\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 335,
+    "subtitle" : "SwiftUI Architecture, State Management & Rendering Engine"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q2. What is the difference between Core Data and SQLite?",
+      "Q3. How would you design an offline-first app?",
+      "Q4. What happens if the app is killed during synchronization?",
+      "Q5. How would you avoid downloading the entire dataset every time?",
+      "Q6. How do you handle two devices editing the same object?",
+      "Q7. Why is idempotency important for offline systems?",
+      "Q8. How do you improve Core Data performance?",
+      "Q9. What is persistent history tracking?",
+      "Q10. Cache vs persistence?",
+      "Q1. Is Core Data a database?"
+    ],
+    "title" : "Persistence & Storage",
+    "summary" : "Comprehensive technical coverage across pages 371 to 422",
+    "pageCount" : 52,
+    "chapterNumber" : 7,
+    "endPage" : 422,
+    "deepDiveCodeSnippet" : "\nPage 421\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nSERVER\n↕\nSYNC ENGINE\n↕\nLOCAL DATABASE\n↓\nUI\n↑\nUser Actions\n↓\nPending Queue\n↓\nSYNC\n🔥 Senior rule\nPersistence isn't about choosing Core Data or SwiftData. It's about defining ownership, source of truth, lifecycle,\nconsistency,\nmigration, synchronization, performance, and failure behavior for application data.\nNext module: Advanced iOS Concurrency & Stru\nctured Concurrency — Task, TaskGrou\np, actors, isolation, Sendable,\ncancellation,\npriorities, task locals, async seq\nuences,\ncontinuations, data races, and produ\nction concurrency architecture.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n7.5 Produ\nction Code Deep-Dive: SwiftData (iOS 17+) & Multi-Context Core Data\nA.\nModern SwiftData Architecture (iOS 17+)\nimport SwiftData\nimport Foundation\n@Model\nfinal class PersistentNote {\nvar title: String\nvar content: String\nvar createdAt: Date\ninit(title: String, content: String) {\nself.title = title\nself.content = content\nself.createdAt = Date()\n}\n}\n@MainActor\nfinal class SwiftDataStore {\nprivate let container: ModelContainer\nprivate var context: ModelContext { container.mainContext }\ninit() throws {\nself.container = try ModelContainer(for: PersistentNote.self)\n}\nfunc insertNote(title: String, content: String) throws {\nlet note = PersistentNote(title: title, content: content)\ncontext.insert(note)\ntry context.save()\n}\nfunc fetchNotes() throws -> [PersistentNote] {\nlet descriptor = FetchDescriptor<PersistentNote>(sortBy: [SortDescriptor(\\.createdAt, order: .reverse)])\nreturn try context.fetch(descriptor)\n}\n}\nB. Thread-Safe Multi-Context Core Data Stack with SQLite WAL\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 422\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport CoreData\nfinal class CoreDataStack: Sendable {\nstatic let shared = CoreDataStack()\nlet persistentContainer: NSPersistentContainer\nvar viewContext: NSManagedObjectContext {\npersistentContainer.viewContext\n}\ninit() {\npersistentContainer = NSPersistentContainer(name: \"Model\")\nguard let description = persistentContainer.persistentStoreDescriptions.first else {\nfatalError(\"No store descriptions found\")\n}\n\/\/ Enable SQLite Write-Ahead Logging (WAL) for concurrent read\/writes\ndescription.setValue(\"WAL\" as NSObject, forPragmaNamed: \"journal\n_\nmode\")\npersistentContainer.loadPersistentStores { _, error in\nif let error { fatalError(\"Core Data store load error: \\(error)\") }\n}\npersistentContainer.viewContext.automaticallyMergesChangesFromParent = true\npersistentContainer.viewContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy\n}\nfunc performBackgroundImport(items: [[String: Any]]) async {\nawait persistentContainer.performBackgroundTask { bgContext in\nbgContext.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy\nfor item in items {\nlet entity = NSEntityDescription.insertNewObject(forEntityName: \"UserEntity\"\n, into: bgContext)\nentity.setValue(item[\"id\"], forKey: \"id\")\nentity.setValue(item[\"name\"], forKey: \"name\")\n}\ntry? bgContext.save()\n}\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 371,
+    "subtitle" : "Data Persistence, Core Data & Offline-First Architecture"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. HTTP\/2 vs HTTP\/3?",
+      "Q2. Why use connection pooling?",
+      "Q3. What is ETag?",
+      "Q4. no-cache vs no-store ?",
+      "Q6. How do you design retry?",
+      "Q7. Why add jitter?",
+      "Q8. Why shouldn't every 500 be retried blindly?",
+      "Q9. How do you safely retry payments?",
+      "Q10. WebSocket vs SSE?",
+      "Q11. Why is reachability not enough?"
+    ],
+    "title" : "Networking & Protocols",
+    "summary" : "Comprehensive technical coverage across pages 423 to 480",
+    "pageCount" : 58,
+    "chapterNumber" : 8,
+    "endPage" : 480,
+    "deepDiveCodeSnippet" : "\nPage 478\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\n→ Centralize refresh in a concurrency-safe token manager,\ncommonly an actor, so concurrent req\nuests await\/share the same refresh operation.\nQ4. When should you retry?\n→ Retry transient failures when the operation is safe to retry,\nusing bounded exponential backoff and jitter. Don't blindly retry authentication,\nvalidation, or other permanent failures.\nQ5. How do you\nprevent stale search results?\n→ Cancel the previous req\nuest\/task when a new q\nuery arrives, debounce inp\nut, and ensure only the latest req\nuest can u\npdate the relevant UI\nstate.\nQ6. Why isn't NWPathMonitor enough to determine whether a req\nuest will su\ncceed?\n→ Network state can change between the reachability check and the actual req\nuest. The req\nuest result remains authoritative.\nQ7. WebSocket vs REST?\n→ REST is well suited to req\nuest\/response APIs and CR\nUD; WebSocket is appropriate when persistent bidirectional real-time comm\nunication is\nreq\nuired.\nQ8. How do you design offline su\npport?\n→ Put persistence behind the repository, expose local data immediately, synchronize with the server, and q\nueue\/reconcile writes when\nnecessary.\nQ9. How do you u\npload a 500 MB video?\n→ Avoid loading the entire file into memory; use file-based\/background u\npload mechanisms and track progress.\nQ10. How do you debug a produ\nction network failure?\n→ Use stru\nctured endpoint\/status\/latency\/error metrics plus correlation IDs,\nwhile redacting sensitive information.\n🧠 Final Mental Model\nNETWORKING\n│\n┌──────────────┼──────────────┐\n↓ ↓ ↓\nRequest Auth Cache\n│ │ │\n└──────────────┼──────────────┘\n↓\nURLSession\n↓\nServer\n│\n┌─────────┼─────────┐\n↓ ↓ ↓\nSuccess Retry Error\n│ │ │\n↓ ↓ ↓\nDecode Backoff Mapping\n│\n↓\nRepository\n│\n↓\nUI\n🔥 Senior rule\nA produ\nction networking layer is not a wrapper around URLSession. It is a system for controlling req\nuest constru\nction,\nauthentication,\ncancellation, retries,\ncaching,\nconcurrency, failure handling, observability, and data consistency.\nNext module: Advanced iOS Persistence & Data Architecture — Core Data internals, SwiftData, SQLite, migrations, relationships,\nbatch operations,\ncaching, offline-first storage, synchronization,\nconflict resolution, and persistence performance.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n8.5 Produ\nction Code Deep-Dive: Produ\nction U\nR\nLSession, SSL Pinning & Multipart Uploads\nA. SSL \/ TLS Certificate & Public Key Pinning Delegate\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 479\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport Foundation\nimport CryptoKit\nfinal class PinningURLSessionDelegate: NSObject, URLSessionDelegate {\nprivate let expectedPublicKeySHA256 = \"6+Y5q9Tq8\/Tz2...\n\" \/\/ Base64 SHA256 of leaf certificate public key\nfunc urlSession(\n_\nsession: URLSession, didReceive challenge: URLAuthenticationChallenge) async ->\n(URLSession.AuthChallengeDisposition, URLCredential?) {\nguard challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodServerTrust,\nlet serverTrust = challenge.protectionSpace.serverTrust else {\nreturn (.cancelAuthenticationChallenge, nil)\n}\nvar error: CFError?\nguard SecTrustEvaluateWithError(serverTrust, &error) else {\nreturn (.cancelAuthenticationChallenge, nil)\n}\nguard let cert = SecTrustGetCertificateAtIndex(serverTrust, 0),\nlet publicKey = SecCertificateCopyKey(cert),\nlet pubKeyData = SecKeyCopyExternalRepresentation(publicKey, nil) as Data? else {\nreturn (.cancelAuthenticationChallenge, nil)\n}\nlet hash = SHA256.hash(data: pubKeyData)\nlet hashBase64 = Data(hash).base64EncodedString()\nif hashBase64 == expectedPublicKeySHA256 {\nreturn (.useCredential, URLCredential(trust: serverTrust))\n} else {\nreturn (.cancelAuthenticationChallenge, nil) \/\/ Pinning failed! MitM protection triggered.\n}\n}\n}\nB.\nMultipart Form Data File Upload\nimport Foundation\nstruct MultipartFormUploader {\nstatic func uploadImage(data: Data, to url: URL) async throws -> (Data, URLResponse) {\nlet boundary = \"Boundary-\\(UUID().uuidString)\"\nvar request = URLRequest(url: url)\nrequest.httpMethod = \"POST\"\nrequest.setValue(\"multipart\/form-data; boundary=\\(boundary)\"\n, forHTTPHeaderField: \"Content-Type\")\nvar body = Data()\nbody.append(\"\n--\\(boundary)\\r\\n\"\n.data(using: .utf8)!)\nbody.append(\"Content-Disposition: form-data; name=\\\"file\\\"; filename=\\\"avatar.jpg\\\"\\r\\n\"\n.data(using: .utf8)!)\nbody.append(\"Content-Type: image\/jpeg\\r\\n\\r\\n\"\n.data(using: .utf8)!)\nbody.append(data)\nbody.append(\"\\r\\n--\\(boundary)--\\r\\n\"\n.data(using: .utf8)!)\nreturn try await URLSession.shared.upload(for: request, from: body)\n}\n}\nC. Network Reachability Monitoring with NWPathMonitor\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 423,
+    "subtitle" : "Networking, Distributed Systems & URLSession Internals"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. Event vs State?",
+      "Q2. PassthroughSubject vs CurrentValueSubject?",
+      "Q3. Debounce vs throttle?",
+      "Q4. receive(on:) vs subscribe(on:) ?",
+      "Q5. Why use a state machine?",
+      "Q6. Combine vs async\/await?",
+      "Q7. What is backpressure?",
+      "Q8. How would you implement search cancellation?",
+      "Q10. Why can a global event bus be dangerous?"
+    ],
+    "title" : "Reactive Programming",
+    "summary" : "Comprehensive technical coverage across pages 481 to 512",
+    "pageCount" : 32,
+    "chapterNumber" : 9,
+    "endPage" : 512,
+    "deepDiveCodeSnippet" : "",
+    "startPage" : 481,
+    "subtitle" : "Combine Framework & Reactive Event-Driven Architecture"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. What happens when an app enters the background?",
+      "Q2. Does background mean the app keeps running?",
+      "Q3. How is beginBackgroundTask different from BGTaskScheduler ?",
+      "Q4. Can BGAppRefreshTask run at an exact time?",
+      "Q7. How do you design reliable background sync?",
+      "Q8. What happens if the app is terminated while background work is running?",
+      "1. What is APNs?",
+      "Q1. Is APNs delivery guaranteed?",
+      "Q2. What is the difference between APNs token and FCM token?",
+      "Q3. Can a device token remain the same forever?"
+    ],
+    "title" : "System Services & APNs",
+    "summary" : "Comprehensive technical coverage across pages 513 to 565",
+    "pageCount" : 53,
+    "chapterNumber" : 10,
+    "endPage" : 565,
+    "deepDiveCodeSnippet" : "\nPage 564\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nSERVER\n│\nSource of Truth\n│\n↓\nAPNs\n│\nNotification\n│\n↓\n\"Something changed\"\n│\n↓\nApp synchronizes\n│\n↓\nLocal DB\n│\n↓\nUI\nGolden rule\nA p\nush notification should usually be treated as a signal, not as the source of truth.\nIf APNs delivery fails, your application should still be able to recover its correct state.\nNext module\nAdvanced iOS Deep Linking, Universal Links & Navigation Architecture — U\nR\nL schemes, Universal Links, Associated Domains, apple-app-\nsite-association, NSUserActivity, onOpenURL, scene-aware routing, authentication-gated links, deferred deep links, p\nush-to-deep-link\nflows, navigation state, and produ\nction routing architecture.\nIf you want, I can:\nExplain Notification Service Extension p\nurpose\nDescribe handling p\nush notification tap safely\nOutline APNs token lifecycle and management\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n10.5 Produ\nction Code Deep-Dive: BGTaskScheduler & Notification Service Extension\nA. Background App Refresh Registration & Scheduling\nimport BackgroundTasks\nfinal class BackgroundSchedulerService {\nstatic let refreshTaskIdentifier = \"com.company.app.refresh\"\nstatic func registerTasks() {\nBGTaskScheduler.shared.register(forTaskWithIdentifier: refreshTaskIdentifier, using: nil) { task in\nguard let appRefreshTask = task as? BGAppRefreshTask else { return }\nhandleAppRefresh(task: appRefreshTask)\n}\n}\nstatic func scheduleNextRefresh() {\nlet request = BGAppRefreshTaskRequest(identifier: refreshTaskIdentifier)\nrequest.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60) \/\/ 15 minutes minimum\ntry? BGTaskScheduler.shared.submit(request)\n}\nprivate static func handleAppRefresh(task: BGAppRefreshTask) {\nscheduleNextRefresh()\nlet fetchTask = Task {\nlet success = await SyncService.shared.syncLatestFeeds()\ntask.setTaskCompleted(success: success)\n}\ntask.expirationHandler = {\nfetchTask.cancel()\n}\n}\n}\nB. Notification Service Extension: Payload Decryption & Attachment Download\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 565\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport UserNotifications\nclass NotificationService: UNNotificationServiceExtension {\nvar contentHandler: ((UNNotificationContent) -> Void)?\nvar bestAttemptContent: UNMutableNotificationContent?\noverride func didReceive(\n_\nrequest: UNNotificationRequest, withContentHandler contentHandler: @escaping\n(UNNotificationContent) -> Void) {\nself.contentHandler = contentHandler\nbestAttemptContent = (request.content.mutableCopy() as? UNMutableNotificationContent)\nguard let bestAttemptContent,\nlet attachmentURLString = bestAttemptContent.userInfo[\"media-url\"] as? String,\nlet attachmentURL = URL(string: attachmentURLString) else {\ncontentHandler(request.content)\nreturn\n}\n\/\/ Download attachment to temporary file\nURLSession.shared.downloadTask(with: attachmentURL) { temporaryURL, _, error in\nif let temporaryURL, error == nil {\nlet tempDir = URL(fileURLWithPath: NSTemporaryDirectory())\nlet localURL = tempDir.appendingPathComponent(attachmentURL.lastPathComponent)\ntry? FileManager.default.moveItem(at: temporaryURL, to: localURL)\nif let attachment = try? UNNotificationAttachment(identifier: \"media\"\n, url: localURL, options: nil) {\nbestAttemptContent.attachments = [attachment]\n}\n}\ncontentHandler(bestAttemptContent)\n}.resume()\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 513,
+    "subtitle" : "iOS App Lifecycle, Background Execution & Push Notifications (APNs)"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. Where would you store an access token?",
+      "Q2. Where would you store a private cryptographic key?",
+      "Q3. Is Keychain the same as Secure Enclave?",
+      "Q4. Is Base64 encryption?",
+      "Q5. Is SHA-256 encryption?",
+      "Q6. Why shouldn't API secrets be embedded in an iOS app?",
+      "Q7. Is HTTPS enough?",
+      "Q8. What happens when an access token expires?",
+      "Q10. Is certificate pinning always recommended?",
+      "Q11. Can jailbreak detection guarantee security?"
+    ],
+    "title" : "Security & Privacy",
+    "summary" : "Comprehensive technical coverage across pages 566 to 598",
+    "pageCount" : 33,
+    "chapterNumber" : 11,
+    "endPage" : 598,
+    "deepDiveCodeSnippet" : "\nPage 597\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nPRODUCT\n_\nBUNDLE\n_\nIDENTIFIER\nMARKETING\n_\nVERSION\nCURRENT\n_\nPROJECT\n_\nVERSION\nAsset catalogs per flavor\nDifferent app icons\nDifferent launch configuration\nMultiple targets\nMultiple extensions\nExtension-specific settings\nShared settings\nBuild phases\nBuild rules\nR\nun Script phases\nCI-specific configuration\nReal produ\nction Dev\/Staging\/Produ\nction setu\np\nSenior interview q\nuestions and troubleshooting scenarios\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n11.4 Produ\nction Code Deep-Dive: Biometric Authentication, Keychain & CryptoKit\nA. Biometric Authentication with LocalAuthentication & Passcode Fallback\nimport LocalAuthentication\nfinal class BiometricAuthService {\nstatic func authenticateUser() async throws -> Bool {\nlet context = LAContext()\ncontext.localizedCancelTitle = \"Cancel\"\nvar error: NSError?\nguard context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: &error) else {\n\/\/ Fallback to device passcode\nreturn try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: \"Enter device passcode\")\n}\nreturn try await context.evaluatePolicy(\n.deviceOwnerAuthenticationWithBiometrics,\nlocalizedReason: \"Authenticate to access encrypted security credentials\"\n)\n}\n}\nB. Thread-Safe Keychain Wrapper with Access Control\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 598\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport Security\nimport Foundation\nfinal class KeychainManager {\nstatic let shared = KeychainManager()\nfunc save(password: Data, account: String, service: String) -> Bool {\nlet query: [String: Any] = [\nkSecClass as String: kSecClassGenericPassword,\nkSecAttrAccount as String: account,\nkSecAttrService as String: service,\nkSecValueData as String: password,\n\/\/ Encrypted until user first unlocks device after reboot\nkSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly\n]\nSecItemDelete(query as CFDictionary)\nlet status = SecItemAdd(query as CFDictionary, nil)\nreturn status == errSecSuccess\n}\nfunc load(account: String, service: String) -> Data? {\nlet query: [String: Any] = [\nkSecClass as String: kSecClassGenericPassword,\nkSecAttrAccount as String: account,\nkSecAttrService as String: service,\nkSecReturnData as String: true,\nkSecMatchLimit as String: kSecMatchLimitOne\n]\nvar result: AnyObject?\nlet status = SecItemCopyMatching(query as CFDictionary, &result)\nreturn status == errSecSuccess ? (result as? Data) : nil\n}\n}\nC. Authenticated Symmetric Encryption via Apple CryptoKit\nimport CryptoKit\nstruct EncryptionService {\nstatic func encrypt(plainText: String, key: SymmetricKey) throws -> Data {\nlet data = Data(plainText.utf8)\nlet sealedBox = try AES.GCM.seal(data, using: key)\nreturn sealedBox.combined ?? Data()\n}\nstatic func decrypt(cipherData: Data, key: SymmetricKey) throws -> String {\nlet sealedBox = try AES.GCM.SealedBox(combined: cipherData)\nlet decryptedData = try AES.GCM.open(sealedBox, using: key)\nreturn String(data: decryptedData, encoding: .utf8) ?? \"\"\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 566,
+    "subtitle" : "iOS Security, Privacy & Permissions Architecture"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q2. What makes a good unit test?",
+      "Q3. Why is dependency injection important for testing?",
+      "Q4. Why shouldn't unit tests call real APIs?",
+      "Q6. How do you test async code?",
+      "Q7. How do you test Combine?",
+      "Q8. How do you test Core Data?",
+      "Q9. What causes flaky tests?",
+      "Q10. Is 100% code coverage necessary?",
+      "Q11. Unit test vs UI test?",
+      "Q12. What is TDD?"
+    ],
+    "title" : "Quality & Verification",
+    "summary" : "Comprehensive technical coverage across pages 599 to 643",
+    "pageCount" : 45,
+    "chapterNumber" : 12,
+    "endPage" : 643,
+    "deepDiveCodeSnippet" : "\nPage 642\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\n→ R\nun the test within the appropriate main-actor isolation,\ncommonly using @MainActor on the test when needed.\nQ6. What causes flaky tests?\n→ Timing, shared state,\nconcurrency races, external dependencies, randomness, dates, animations, and improper async synchronization.\nQ7. Why is sleep() a bad synchronization mechanism?\n→ It waits for time rather than a condition and creates slow\n,\nunreliable tests.\nQ8. Is 100% code coverage enough?\n→ No. Coverage measures execution, not whether assertions validate meaningful behavior.\nQ9. How do you test retry logic?\n→ Inject a dependency that produ\nces deterministic su\nccess\/failure seq\nuences and verify attempts, retry limits,\ncancellation, and final behavior.\nQ10. How do you design code for testability?\n→ Use dependency inversion, small responsibilities, deterministic inp\nuts, explicit boundaries, p\nure logic where possible, and injectable external\ndependencies.\n🧠 Final Mental Model\nTESTABLE SYSTEM\n│\n┌───────────────┼────────────────┐\n↓ ↓ ↓\nIsolation Determinism Dependency\nInjection\n│ │ │\n└───────────────┼────────────────┘\n↓\nUnit Tests\n↓\nIntegration Tests\n↓\nUI Tests\n↓\nReal User Confidence\n🔥 Senior rule\nThe best testing strategy isn't \"write more tests.\" It's designing boundaries so that important behavior can be tested\ndeterministically,\ncheaply, and independently.\nNext module\nAdvanced SwiftUI Architecture & Rendering Internals — View identity, body, diffing, state ownership, @State, @Binding,\n@Observable, O\nbservation framework, environment, view invalidation, dependency tracking, performance, and SwiftUI ↔\nUIKit architecture.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n12.4 Produ\nction Code Deep-Dive: Swift Testing Framework (@Test) & Memory Leak Assertion\nA.\nModern Swift Testing Framework Suite (@Test)\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 643\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport Testing\n@testable import MyApp\n@Suite(\"User Authentication & Payment Tests\")\nstruct AuthTests {\nlet authService: AuthService\ninit() {\nself.authService = AuthService(mockSession: MockURLSession())\n}\n@Test(\"Valid credentials authenticate successfully\")\nfunc validLogin() async throws {\nlet token = try await authService.login(username: \"navneet\"\n, password: \"Password123\")\n#expect(!token.isEmpty)\n#expect(token.starts(with: \"tok\n_\n\"))\n}\n@Test(\"Parameterized test over invalid emails\"\n, arguments: [\"invalid\"\n,\n\"test@\"\n,\n\"@domain.com\"\n,\n\"\"])\nfunc invalidEmailValidation(email: String) {\n#expect(!Validator.isValidEmail(email))\n}\n}\nB. Automated Memory Leak Assertion Helper in XCTest\nimport XCTest\nextension XCTestCase {\nfunc trackForMemoryLeaks(\n_\ninstance: AnyObject, file: StaticString = #filePath, line: UInt = #line) {\naddTeardownBlock { [weak instance] in\nXCTAssertNil(instance,\n\"Potential memory leak detected! Instance was not deallocated.\n\"\n, file: file, line:\nline)\n}\n}\n}\nC.\nMock U\nR\nLProtocol for Deterministic Network Testing\nimport Foundation\nfinal class MockURLProtocol: URLProtocol {\nstatic var mockHandler: ((URLRequest) throws -> (HTTPURLResponse, Data))?\noverride class func canInit(with request: URLRequest) -> Bool { true }\noverride class func canonicalRequest(for request: URLRequest) -> URLRequest { request }\noverride func startLoading() {\nguard let handler = MockURLProtocol.mockHandler else {\nclient?.urlProtocol(self, didFailWithError: URLError(.badServerResponse))\nreturn\n}\ndo {\nlet (response, data) = try handler(request)\nclient?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)\nclient?.urlProtocol(self, didLoad: data)\nclient?.urlProtocolDidFinishLoading(self)\n} catch {\nclient?.urlProtocol(self, didFailWithError: error)\n}\n}\noverride func stopLoading() {}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 599,
+    "subtitle" : "Testing, Quality Engineering & Modern Test Architecture"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. What is the difference between Build Configuration and Scheme?",
+      "Q2. What is .xcconfig ?",
+      "Q3. Info.plist vs Entitlements?",
+      "Q4. Capability vs permission?",
+      "Q5. What is an app flavor?",
+      "Q7. Can an extension use the main app's entitlements automatically?",
+      "Q8. How does an extension share data with the main app?",
+      "Q1. Target vs Scheme?",
+      "Q2. Why use .xcconfig ?",
+      "Q3. Configuration vs Scheme?"
+    ],
+    "title" : "Tooling & Build System",
+    "summary" : "Comprehensive technical coverage across pages 644 to 736",
+    "pageCount" : 93,
+    "chapterNumber" : 13,
+    "endPage" : 736,
+    "deepDiveCodeSnippet" : "\nPage 735\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nDon't ask:\n\"How do I create an SPM package?\"\nAsk:\n\"What boundary should exist?\"\n↓\n\"What should this module know?\"\n↓\n\"What should it NOT know?\"\n↓\n\"Who owns the dependency?\"\n↓\n\"Can the dependency graph remain acyclic?\"\n↓\n\"Does this boundary improve build\/test\/team scalability?\"\nKey rule\nGood modularization makes the wrong dependency difficult to create.\nNext module\nAdvanced iOS Dependency Injection & Composition Root Architecture — DI patterns,\nconstru\nctor\/property\/method injection, factories,\ndependency containers, environment-based composition, protocol vs concrete dependencies, lifetime\/scoping, test composition, avoiding\nservice locators, and designing a produ\nction-grade dependency graph.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n13.8 Produ\nction Code Deep-Dive: Package.swift Manifest & Multi-Environment .xcconfig\nA. SPM Modular Package.swift Manifest with Binary Target\n\/\/ swift-tools-version: 5.10\nimport PackageDescription\nlet package = Package(\nname: \"EnterpriseCore\"\n,\nplatforms: [.iOS(.v17)],\nproducts: [\n.library(name: \"DomainKit\"\n, targets: [\"DomainKit\"]),\n.library(name: \"NetworkKit\"\n, targets: [\"NetworkKit\"])\n],\ndependencies: [],\ntargets: [\n.target(\nname: \"DomainKit\"\n,\ndependencies: []\n),\n.target(\nname: \"NetworkKit\"\n,\ndependencies: [\"DomainKit\"]\n),\n.binaryTarget(\nname: \"AnalyticsBinarySDK\"\n,\npath: \"Frameworks\/AnalyticsBinarySDK.xcframework\"\n),\n.testTarget(\nname: \"NetworkKitTests\"\n,\ndependencies: [\"NetworkKit\"]\n)\n]\n)\nB.\nMulti-Environment .xcconfig Architecture\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 736\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\n\/\/ Configuration\/Production.xcconfig\n#include \"Shared.xcconfig\"\nAPP\n_\nDISPLAY\n_\nNAME = MyEnterpriseApp\nAPP\n_\nBUNDLE\n_\nIDENTIFIER = com.company.myenterpriseapp\nAPI\n_\nBASE\n_\nURL = https:\\\/\\\/api.company.com\\\/v1\nSWIFT\n_\nACTIVE\n_\nCOMPILATION\n_\nCONDITIONS = PRODUCTION\nSWIFT\n_\nOPTIMIZATION\n_\nLEVEL = -O\nOTHER\n_\nSWIFT\n_\nFLAGS = $(inherited) -warnings-as-errors\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 644,
+    "subtitle" : "Xcode Build System, Modularization & Swift Package Manager"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q4. Why can an app be killed even when you don't have a classic memory leak?",
+      "Q5. How do you investigate a launch-time regression?",
+      "Q6. How do you find why a specific operation takes 2 seconds?",
+      "Q7. Time Profiler says a function is expensive. Should you optimize it immediately?"
+    ],
+    "title" : "Performance & Diagnostics",
+    "summary" : "Comprehensive technical coverage across pages 737 to 757",
+    "pageCount" : 21,
+    "chapterNumber" : 14,
+    "endPage" : 757,
+    "deepDiveCodeSnippet" : "\nPage 756\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nInstru\nments is not just a debugging tool—it is an evidence-gathering tool. Never claim \"performance is slow because of X\" until\nprofiling demonstrates it.\nNext Module → Apple Developer Account & Code Signing\nWe'll go deep into:\nApple Developer Program\n↓\nTeam\n↓\nCertificates\n↓\nIdentifiers\n↓\nApp ID \/ Bundle ID\n↓\nCapabilities\n↓\nDevices\n↓\nProvisioning Profiles\n↓\nEntitlements\n↓\nCode Signing\n↓\nArchive\n↓\nTestFlight\n↓\nApp Store\nThen we'll cover App Store Connect, TestFlight, App Review\n,\ncertificates\/profiles, signing failures, and produ\nction release\ntroubleshooting as dedicated modules.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n14.3 Produ\nction Code Deep-Dive: os_signpost & MetricKit Subscriber\nA. Custom Performance Tracing with os_signpost & Points of Interest\nimport os.signpost\nstruct PerformanceTracer {\nprivate static let pointsOfInterest = OSLog(subsystem: Bundle.main.bundleIdentifier ?? \"app\"\n, category:\n.pointsOfInterest)\nstatic func traceFeedRender(action: () -> Void) {\nlet signpostID = OSSignpostID(log: pointsOfInterest)\nos\n_\nsignpost(.begin, log: pointsOfInterest, name: \"FeedRender\"\n, signpostID: signpostID,\n\"Beginning feed item layout\ncalculation\")\naction()\nos\n_\nsignpost(.end, log: pointsOfInterest, name: \"FeedRender\"\n, signpostID: signpostID,\n\"Feed item layout completed\")\n}\n}\nB.\nMetricKit Subscriber for Hang Rate & Power Metrics\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 757\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport MetricKit\nfinal class AppMetricKitSubscriber: NSObject, MXMetricManagerSubscriber {\nstatic let shared = AppMetricKitSubscriber()\nfunc startObserving() {\nMXMetricManager.shared.add(self)\n}\nfunc didReceive(\n_ payloads: [MXMetricPayload]) {\nfor payload in payloads {\n\/\/ Monitor daily Hang Time metrics\nif let hangTime = payload.applicationTimeMetrics?.cumulativeAppHangTime {\nprint(\"Cumulative hang time: \\(hangTime)\")\n}\n\/\/ Monitor Energy usage\nif let cpuTime = payload.cpuMetrics?.cumulativeCPUTime {\nprint(\"Cumulative CPU time: \\(cpuTime)\")\n}\n}\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 737,
+    "subtitle" : "Instruments, Profiling & Performance Engineering"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q2. Certificate vs provisioning profile?",
+      "Q3. What is an entitlement?",
+      "Q4. What is the difference between archive and IPA?",
+      "Q6. How do you securely handle signing in CI?",
+      "Q8. What happens if the provisioning profile expires?",
+      "Q9. Automatic vs manual signing?",
+      "Q11. How would you safely release a risky feature?",
+      "Q13. Why shouldn't you use an Apple account password in CI?",
+      "Q14. What is the difference between Continuous Delivery and Continuous Deployment?",
+      "Q15. What would you automate as a Senior iOS engineer?"
+    ],
+    "title" : "Distribution & Signing",
+    "summary" : "Comprehensive technical coverage across pages 758 to 813",
+    "pageCount" : 56,
+    "chapterNumber" : 15,
+    "endPage" : 813,
+    "deepDiveCodeSnippet" : "\nPage 813\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nRedu\ncing Xcode build times\nSenior\/Lead modularization interview scenarios\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n15.4 Produ\nction Code Deep-Dive: StoreKit 2 & Fastlane Automation\nA.\nModern StoreKit 2 In-App Purchase Manager\nimport StoreKit\n@Observable\nfinal class StoreKit2Manager {\nprivate(set) var availableProducts: [Product] = []\nprivate var updatesTask: Task<Void, Never>?\ninit() {\nupdatesTask = observeTransactionUpdates()\n}\nfunc loadProducts(identifiers: [String]) async throws {\navailableProducts = try await Product.products(for: identifiers)\n}\nfunc purchase(\n_ product: Product) async throws -> Bool {\nlet result = try await product.purchase()\nswitch result {\ncase .success(let verification):\nlet transaction = try checkVerified(verification)\nawait transaction.finish()\nreturn true\ncase .userCancelled, .pending:\nreturn false\n@unknown default:\nreturn false\n}\n}\nprivate func observeTransactionUpdates() -> Task<Void, Never> {\nTask(priority: .background) {\nfor await verificationResult in Transaction.updates {\nif let transaction = try? checkVerified(verificationResult) {\nawait transaction.finish()\n}\n}\n}\n}\nprivate func checkVerified<T>(\n_\nresult: VerificationResult<T>) throws -> T {\nswitch result {\ncase .unverified: throw StoreError.failedVerification\ncase .verified(let safe): return safe\n}\n}\nenum StoreError: Error { case failedVerification }\n}\nB. Produ\nction Fastlane Fastfile with Match & Pilot\ndefault\n_platform(:ios)\nplatform :ios do\ndesc \"Build, sign, and push release candidate to TestFlight\"\nlane :beta do\nmatch(type: \"appstore\"\n, readonly: true)\nincrement\n_\nbuild\n_\nnumber(build\n_\nnumber: latest\n_\ntestflight\n_\nbuild\n_\nnumber + 1, xcodeproj: \"MyApp.xcodeproj\")\nbuild\n_\napp(scheme: \"Production\"\n, export\n_\nmethod: \"app-store\"\n, export\n_\noptions: \"\n.\/BuildConfigs\/ExportOptions.plist\"\n,\nclean: true)\nupload\n_\nto\n_\ntestflight(skip_\nwaiting_\nfor\n_\nbuild\n_processing: true, changelog: \"Production release.\n\")\nend\nend\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 758,
+    "subtitle" : "Apple Developer Account, Code Signing, TestFlight & App Store Release"
+  },
+  {
+    "sampleInterviewQuestions" : [
+
+    ],
+    "title" : "Hardware & Connectivity",
+    "summary" : "Comprehensive technical coverage across pages 814 to 823",
+    "pageCount" : 10,
+    "chapterNumber" : 16,
+    "endPage" : 823,
+    "deepDiveCodeSnippet" : "\nPage 822\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\niPhone\n│\nCentral Manager\n│\nScanning\n↓\nPeripheral\n│\nConnection\n↓\nServices\n│\nCharacteristics\n↙ ↓ ↘\nRead Write Notify\nRemember this chain for interviews:\nCentral → Peripheral → Service → Characteristic → Read\/Write\/Notify\nNext module: Advanced UIKit — View lifecycle, responder chain, event handling, UIViewController, UITableView \/ UICollectionView,\ncell reuse, diffable data source,\ncompositional layout, performance, and UIKit ↔ SwiftUI interoperability.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n16.4 Produ\nction Code Deep-Dive: Complete CoreBluetooth Central Manager\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 823\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport CoreBluetooth\nfinal class BluetoothManager: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate {\nprivate var centralManager: CBCentralManager!\nprivate var targetPeripheral: CBPeripheral?\nstatic let heartRateServiceUUID = CBUUID(string: \"180D\")\nstatic let measurementCharUUID = CBUUID(string: \"2A37\")\noverride init() {\nsuper.init()\ncentralManager = CBCentralManager(delegate: self, queue: nil)\n}\nfunc centralManagerDidUpdateState(\n_\ncentral: CBCentralManager) {\nif central.state == .poweredOn {\ncentralManager.scanForPeripherals(withServices: [Self.heartRateServiceUUID], options:\n[CBCentralManagerScanOptionAllowDuplicatesKey: false])\n}\n}\nfunc centralManager(\n_\ncentral: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String:\nAny], rssi RSSI: NSNumber) {\ntargetPeripheral = peripheral\ncentralManager.stopScan()\ncentralManager.connect(peripheral, options: nil)\n}\nfunc centralManager(\n_\ncentral: CBCentralManager, didConnect peripheral: CBPeripheral) {\nperipheral.delegate = self\nperipheral.discoverServices([Self.heartRateServiceUUID])\n}\nfunc peripheral(\n_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {\nguard let services = peripheral.services else { return }\nfor service in services where service.uuid == Self.heartRateServiceUUID {\nperipheral.discoverCharacteristics([Self.measurementCharUUID], for: service)\n}\n}\nfunc peripheral(\n_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {\nguard let characteristics = service.characteristics else { return }\nfor char in characteristics where char.uuid == Self.measurementCharUUID {\nperipheral.setNotifyValue(true, for: char) \/\/ Subscribe to sensor streaming updates\n}\n}\nfunc peripheral(\n_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {\nguard let data = characteristic.value else { return }\nprint(\"Received BLE Sensor Data: \\(data.count) bytes\")\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 814,
+    "subtitle" : "Bluetooth Low Energy (CoreBluetooth)"
+  },
+  {
+    "sampleInterviewQuestions" : [
+      "Q1. How would you design a scalable iOS application?",
+      "Q2. How would you design offline-first?",
+      "Q3. How would you design image loading?",
+      "Q5. How would you handle 401 responses?",
+      "Q6. How would you design search-as-you-type?",
+      "Q7. How would you design pagination?",
+      "Q9. How do you handle WebSocket disconnects?",
+      "Q10. How would you handle conflicting offline changes?",
+      "Q11. Why use DTOs?",
+      "Q12. Why use a repository?"
+    ],
+    "title" : "Large-Scale Architecture",
+    "summary" : "Comprehensive technical coverage across pages 824 to 869",
+    "pageCount" : 46,
+    "chapterNumber" : 17,
+    "endPage" : 869,
+    "deepDiveCodeSnippet" : "\nPage 867\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nPRODUCT\n│\n┌──────────┴──────────┐\n↓ ↓\nRequirements Constraints\n│ │\n└──────────┬──────────┘\n↓\nArchitecture\n│\n┌─────────────────┼─────────────────┐\n↓ ↓ ↓\nPresentation Domain Data\n│ │ │\n↓ ↓ ┌──────┴──────┐\nUI UseCases Local Remote\n│ │\n└──────┬───────┘\n↓\nSync\n↓\nState\n↓\nUI\nCross-cutting every layer:\nSecurity\nPerformance\nConcurrency\nTesting\nObservability\nAnalytics\nFeature Flags\n🔥 Lead Engineer rule\nDon't design an iOS app as a collection of screens. Design it as a system of state, data, ownership,\nboundaries, failure modes, and\nuser flows.\nNext module: Advanced iOS Networking Internals & Produ\nction Networking — U\nR\nLSession architecture, URLSessionTask, HTTP caching,\ninterceptors, authentication, req\nuest dedu\nplication, retry\/backoff, m\nultipart u\nploads, downloads, WebSockets, SSE,\nconnectivity,\ncancellation,\nand network observability.\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n17.3 Produ\nction Code Deep-Dive: System Design Caching & WebSocket Client\nA. High-Throughp\nut Memory & Disk L\nR\nU Image Cache Actor\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 868\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nactor ResilientImageCache {\nstatic let shared = ResilientImageCache()\nprivate let memoryCache = NSCache<NSURL, UIImage>()\nprivate let diskURL: URL\ninit() {\nself.diskURL = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)\n[0].appendingPathComponent(\"ImageCache\")\ntry? FileManager.default.createDirectory(at: diskURL, withIntermediateDirectories: true)\nmemoryCache.countLimit = 100\nmemoryCache.totalCostLimit = 50 * 1024 * 1024 \/\/ 50 MB\n}\nfunc image(for url: URL) async -> UIImage? {\nif let memImage = memoryCache.object(forKey: url as NSURL) {\nreturn memImage\n}\nlet fileURL = diskURL.appendingPathComponent(String(url.hashValue))\nif let diskData = try? Data(contentsOf: fileURL), let diskImage = UIImage(data: diskData) {\nmemoryCache.setObject(diskImage, forKey: url as NSURL, cost: diskData.count)\nreturn diskImage\n}\nreturn nil\n}\nfunc insert(\n_\nimage: UIImage, for url: URL) async {\nguard let data = image.jpegData(compressionQuality: 0.8) else { return }\nmemoryCache.setObject(image, forKey: url as NSURL, cost: data.count)\nlet fileURL = diskURL.appendingPathComponent(String(url.hashValue))\ntry? data.write(to: fileURL)\n}\n}\nB.\nResilient WebSocket Manager with Heartbeat & Auto-Reconnect\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum\nPage 869\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nimport Foundation\nactor WebSocketConnectionManager {\nprivate var webSocketTask: URLSessionWebSocketTask?\nprivate let url: URL\nprivate var isConnected = false\ninit(url: URL) {\nself.url = url\n}\nfunc connect() {\nlet session = URLSession(configuration: .default)\nwebSocketTask = session.webSocketTask(with: url)\nwebSocketTask?.resume()\nisConnected = true\nstartHeartbeat()\nlisten()\n}\nprivate func startHeartbeat() {\nTask { [weak self] in\nwhile await self?.isConnected == true {\ntry? await Task.sleep(nanoseconds: 30 * 1\n_\n000\n_\n000\n_\n000)\nawait self?.sendPing()\n}\n}\n}\nprivate func sendPing() {\nwebSocketTask?.sendPing { [weak self] error in\nif error != nil {\nTask { await self?.reconnect() }\n}\n}\n}\nprivate func listen() {\nwebSocketTask?.receive { [weak self] result in\nswitch result {\ncase .success(let message):\nprint(\"Received message: \\(message)\")\nTask { await self?.listen() }\ncase .failure:\nTask { await self?.reconnect() }\n}\n}\n}\nprivate func reconnect() {\nwebSocketTask?.cancel(with: .goingAway, reason: nil)\nisConnected = false\nTask {\ntry? await Task.sleep(nanoseconds: 3 * 1\n_\n000\n_\n000\n_\n000)\nconnect()\n}\n}\n}\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 824,
+    "subtitle" : "iOS System Design — Senior & Lead Engineering Blueprints"
+  },
+  {
+    "sampleInterviewQuestions" : [
+
+    ],
+    "title" : "Complete Lexicon",
+    "summary" : "Comprehensive technical coverage across pages 870 to 889",
+    "pageCount" : 20,
+    "chapterNumber" : 18,
+    "endPage" : 889,
+    "deepDiveCodeSnippet" : "\nPage 889\niOS Senior & Lead Engineer Interview Handbook | Topic-Organized Master Curriculu\nm\nSWIFT \/ iOS\n│\n┌─────────────────┼─────────────────┐\n│ │ │\nTYPE SYSTEM OOP CONCURRENCY\n│ │ │\n<T> \/ some \/ any Class\/Struct GCD\nType Erasure Composition Task\nProtocol Inheritance Actor\nAssociated Type Polymorphism Sendable\n│ MainActor\nSOLID\n│\n┌─────────┴─────────┐\n│ │\nDESIGN PATTERNS ARCHITECTURE\n│ │\nRepository MVVM\nCoordinator Clean\nStrategy VIPER\nFactory\nDelegate\nAdapter\n│\nDI \/ DIP\n│\nMODULARIZATION\n│\nPackage \/ Framework\nStatic \/ Dynamic\n│\nUI\n│\nAuto Layout\nSize Classes\nHugging\nCompression\nProduction Code Deep-Dive Complete Swift 6 \/ iOS 18 Implementations\n18.2 Produ\nction Syntax Pairs: Master Rapid-Recall Code Examples\n\/\/ 1. Generics & Primary Associated Type\nprotocol Store<Item> { associatedtype Item; func get() -> Item }\nfunc load(store: some Store<String>) -> String { store.get() }\n\/\/ 2. Existential Container (any)\nvar anyStores: [any Store] = [] \/\/ heterogeneous boxing overhead\n\/\/ 3. Opaque Type (some)\nfunc makeStore() -> some Store<Int> { InMemoryStore<Int>() } \/\/ static return type\n\/\/ 4. Memory Management: weak vs unowned\nweak var delegate: MyDelegate? \/\/ Optional; zeroes on deallocation\nunowned let parent: ParentObject \/\/ Non-optional; traps if accessed after deallocation\n\/\/ 5. Autorelease Pool\nautoreleasepool { let tempImage = UIImage(named: \"large\") } \/\/ drains memory immediately\n\/\/ 6. Concurrency: TaskGroup\nawait withTaskGroup(of: Int.self) { group in\ngroup.addTask { 1 }\ngroup.addTask { 2 }\n}\n\/\/ 7. Actors & Re-entrancy\nactor SafeCounter {\nvar count = 0\nfunc increment() { count += 1 } \/\/ isolated access\n}\n\/\/ 8. Dynamic Dispatch vs Static Dispatch\nfinal class FastService { func run() {} } \/\/ Static dispatch (compiler inlined)\nclass Base { func compute() {} } \/\/ VTable virtual dispatch\n06\/10\/2026, 00:19 iOS Senior & Lead Engineer Interview Handbook — Complete Topic-Organized Master Curriculum",
+    "startPage" : 870,
+    "subtitle" : "Master Definition List & Comprehensive Technical Lexicon"
+  }
+]

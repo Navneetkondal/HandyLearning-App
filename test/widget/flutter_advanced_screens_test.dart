@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/flutter_advanced/screens/isolates_concurrency_screen.dart';
-import 'package:flutter_learning_hub/features/flutter_advanced/screens/engine_internals_screen.dart';
+import 'package:handy_learn/features/flutter_advanced/screens/isolates_concurrency_screen.dart';
+import 'package:handy_learn/features/flutter_advanced/screens/engine_internals_screen.dart';
 
 void main() {
   group('Flutter Advanced & Master Screens Tests', () {

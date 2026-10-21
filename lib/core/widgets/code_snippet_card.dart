@@ -80,29 +80,36 @@ class _CodeSnippetCardState extends State<CodeSnippetCard> {
                     ),
                   ),
                 ),
-                InkWell(
-                  onTap: _copyCode,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _copied ? Icons.check : Icons.copy_rounded,
-                          size: 14,
-                          color: _copied ? Colors.green : Colors.grey,
+                Semantics(
+                  button: true,
+                  label: _copied ? 'Code snippet copied' : 'Copy code snippet to clipboard',
+                  child: Tooltip(
+                    message: _copied ? 'Copied' : 'Copy code',
+                    child: InkWell(
+                      onTap: _copyCode,
+                      borderRadius: BorderRadius.circular(6),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _copied ? Icons.check : Icons.copy_rounded,
+                              size: 14,
+                              color: _copied ? Colors.green : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              _copied ? 'Copied' : 'Copy',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: _copied ? Colors.green : Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _copied ? 'Copied' : 'Copy',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _copied ? Colors.green : Colors.grey,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -132,9 +139,17 @@ class _CodeSnippetCardState extends State<CodeSnippetCard> {
           if (widget.explanation != null)
             Container(
               padding: const EdgeInsets.all(12),
-              color: isDark
-                  ? const Color(0xFF1E293B)
-                  : const Color(0xFFF1F5F9),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF1F5F9),
+                border: Border(
+                  top: BorderSide(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                    width: 1,
+                  ),
+                ),
+              ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

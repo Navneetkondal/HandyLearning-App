@@ -128,8 +128,11 @@ class ExamResult {
 
   factory ExamResult.fromJson(Map<String, dynamic> json) => ExamResult(
         id: json['id'] as String,
-        track: ExamTrack.values.firstWhere((e) => e.name == json['track']),
-        candidateName: json['candidateName'] as String,
+        track: ExamTrack.values.firstWhere(
+          (e) => e.name == json['track'],
+          orElse: () => ExamTrack.flutter,
+        ),
+        candidateName: json['candidateName'] as String? ?? 'Candidate',
         scorePercentage: (json['scorePercentage'] as num).toInt(),
         correctCount: (json['correctCount'] as num).toInt(),
         totalQuestions: (json['totalQuestions'] as num).toInt(),

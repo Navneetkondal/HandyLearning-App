@@ -81,6 +81,7 @@ class _IsolatesConcurrencyScreenState extends State<IsolatesConcurrencyScreen>
     final primes = await compute(_computePrimes, 150000);
     stopwatch.stop();
 
+    if (!mounted) return;
     setState(() {
       _lastResult = primes;
       _elapsedMs = stopwatch.elapsedMilliseconds;

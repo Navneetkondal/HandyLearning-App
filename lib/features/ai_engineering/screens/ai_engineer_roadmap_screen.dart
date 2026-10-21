@@ -10,7 +10,8 @@ import '../models/ai_engineer_roadmap_models.dart';
 
 /// Interactive AI Engineering from Scratch to Claude Certified Developer Roadmap Screen.
 class AiEngineerRoadmapScreen extends StatefulWidget {
-  const AiEngineerRoadmapScreen({super.key});
+  final bool hideAppBar;
+  const AiEngineerRoadmapScreen({super.key, this.hideAppBar = false});
 
   @override
   State<AiEngineerRoadmapScreen> createState() => _AiEngineerRoadmapScreenState();
@@ -104,29 +105,31 @@ class _AiEngineerRoadmapScreenState extends State<AiEngineerRoadmapScreen> {
     final progress = totalLessons > 0 ? (completedCount / totalLessons).clamp(0.0, 1.0) : 0.0;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('AI Engineer & Claude Mastery'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
-            tooltip: 'Take Claude Mock Exam',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const UnifiedExamRunnerScreen(track: ExamTrack.claude),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text('AI Engineer & Claude Mastery'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
+                  tooltip: 'Take Claude Mock Exam',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const UnifiedExamRunnerScreen(track: ExamTrack.claude),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
-        ],
-      ),
+              ],
+            ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Hero Banner: The AI Trifecta
+          // Standardized Compact Progress & Roadmap Banner
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: isDark
@@ -135,77 +138,93 @@ class _AiEngineerRoadmapScreenState extends State<AiEngineerRoadmapScreen> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(14),
               border: Border.all(
-                color: const Color(0xFF6366F1).withAlpha(100),
-                width: 1.2,
+                color: const Color(0xFF6366F1).withAlpha(80),
+                width: 1.0,
               ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6366F1).withAlpha(40),
-                        borderRadius: BorderRadius.circular(12),
+                        color: const Color(0xFF6366F1).withAlpha(30),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: const Text(
-                        'FIRST PRINCIPLES ➔ PRODUCTION MASTER',
-                        style: TextStyle(
-                          color: Color(0xFF6366F1),
+                      child: const Icon(
+                        Icons.psychology_rounded,
+                        color: Color(0xFF6366F1),
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Child to Master AI Engineer Roadmap',
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '523 lessons • Claude Academy • Pearson VUE',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withAlpha(25),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        '${(progress * 100).toInt()}% Done',
+                        style: const TextStyle(
+                          fontSize: 11,
                           fontWeight: FontWeight.bold,
-                          fontSize: 10.5,
-                          letterSpacing: 0.5,
+                          color: Color(0xFF10B981),
                         ),
                       ),
                     ),
-                    const Spacer(),
-                    const Icon(Icons.auto_awesome_rounded, color: Color(0xFFF59E0B), size: 20),
                   ],
                 ),
-                const SizedBox(height: 12),
-                const Text(
-                  'Child to Master AI Engineer Roadmap',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  'Synthesizing 523 lessons from AI Engineering from Scratch, Anthropic Claude Academy, and the Official CCDV-F & CCAR-F Pearson VUE blueprints.',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: isDark ? Colors.grey.shade300 : Colors.grey.shade700,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // Interactive Progress Bar
+                const SizedBox(height: 10),
                 Row(
                   children: [
                     Expanded(
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(4),
                         child: LinearProgressIndicator(
                           value: progress,
-                          minHeight: 10,
+                          minHeight: 4,
                           backgroundColor: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
                           color: const Color(0xFF10B981),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 8),
                     Text(
-                      '${(progress * 100).toInt()}% Done ($completedCount/$totalLessons)',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      '$completedCount/$totalLessons',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
                       ),
                     ),
                   ],
@@ -440,9 +459,12 @@ class _AiEngineerRoadmapScreenState extends State<AiEngineerRoadmapScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    lesson.phaseOrCategory,
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                  Expanded(
+                    child: Text(
+                      lesson.phaseOrCategory,
+                      style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),

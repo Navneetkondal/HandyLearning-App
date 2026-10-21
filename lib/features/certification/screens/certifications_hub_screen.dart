@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../ai_engineering/screens/ai_engineer_roadmap_screen.dart';
+import '../../../core/theme/app_colors.dart';
 import '../models/certification_models.dart';
 import '../services/certification_storage_service.dart';
 import 'certificate_viewer_screen.dart';
@@ -7,7 +8,8 @@ import 'unified_exam_runner_screen.dart';
 
 /// Central Hub for all certification tracks, progress tracking, and earned credentials.
 class CertificationsHubScreen extends StatefulWidget {
-  const CertificationsHubScreen({super.key});
+  final bool hideAppBar;
+  const CertificationsHubScreen({super.key, this.hideAppBar = false});
 
   @override
   State<CertificationsHubScreen> createState() => _CertificationsHubScreenState();
@@ -64,7 +66,7 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) => controller.dispose());
   }
 
   void _startExam(ExamTrack track) async {
@@ -76,6 +78,7 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
         ),
       ),
     );
+    if (!mounted) return;
     setState(() {}); // refresh after exam
   }
 
@@ -93,16 +96,18 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
     final history = _storage!.getExamHistory();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Certification & Exam Center'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_pin_circle_outlined),
-            tooltip: 'Candidate Name',
-            onPressed: _showEditNameDialog,
-          ),
-        ],
-      ),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text('Certification & Exam Center'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.person_pin_circle_outlined),
+                  tooltip: 'Candidate Name',
+                  onPressed: _showEditNameDialog,
+                ),
+              ],
+            ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -113,18 +118,18 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
 
             // Earned Credentials Section
             if (earnedCertificates.isNotEmpty) ...[
-              const Text(
+              Text(
                 'YOUR VERIFIED CREDENTIALS',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: Colors.grey,
+                  color: AppColors.textSub(isDark),
                 ),
               ),
               const SizedBox(height: 10),
               SizedBox(
-                height: 140,
+                height: (140 * MediaQuery.textScalerOf(context).scale(1.0).clamp(1.0, 1.6)).toDouble(),
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
                   itemCount: earnedCertificates.length,
@@ -267,11 +272,19 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    InkWell(
-                      onTap: _showEditNameDialog,
-                      child: const Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Icon(Icons.edit, size: 14, color: Colors.white70),
+                    Semantics(
+                      button: true,
+                      label: 'Edit candidate profile name',
+                      child: InkWell(
+                        onTap: _showEditNameDialog,
+                        borderRadius: BorderRadius.circular(24),
+                        child: const SizedBox(
+                          width: 48,
+                          height: 48,
+                          child: Center(
+                            child: Icon(Icons.edit, size: 16, color: Colors.white70),
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -336,7 +349,7 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF22252D) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
+          border: Border.all(color: AppColors.goldBorder(isDark), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(15),
@@ -351,7 +364,7 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.verified_rounded, color: Color(0xFFD4AF37), size: 18),
+                Icon(Icons.verified_rounded, color: AppColors.goldText(isDark), size: 18),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
@@ -436,7 +449,7 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
         side: BorderSide(
-          color: hasEarned ? const Color(0xFFD4AF37) : Colors.grey.withAlpha(50),
+          color: hasEarned ? AppColors.goldBorder(isDark) : (isDark ? AppColors.borderSubtleDark : AppColors.borderSubtle),
           width: hasEarned ? 1.5 : 1,
         ),
       ),
@@ -467,13 +480,13 @@ class _CertificationsHubScreenState extends State<CertificationsHubScreen> {
                       const SizedBox(height: 2),
                       Text(
                         '10 Questions • 15 Mins • Pass Threshold: ${track.passingPercentage}%',
-                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                        style: TextStyle(fontSize: 11, color: AppColors.textSub(isDark)),
                       ),
                     ],
                   ),
                 ),
                 if (hasEarned)
-                  const Icon(Icons.verified_rounded, color: Color(0xFFD4AF37), size: 24),
+                  Icon(Icons.verified_rounded, color: AppColors.goldText(isDark), size: 24),
               ],
             ),
             const SizedBox(height: 14),

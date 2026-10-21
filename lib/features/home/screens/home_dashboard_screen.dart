@@ -1,33 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/theme_cubit.dart';
-import '../../ai_engineering/screens/ai_engineer_roadmap_screen.dart';
-import '../../certification/screens/certifications_hub_screen.dart';
-import '../../challenges/screens/challenges_screen.dart';
-import '../../claude_certification/screens/claude_curriculum_screen.dart';
-import '../../claude_developer/screens/claude_caching_calculator_screen.dart';
-import '../../claude_developer/screens/claude_developer_hub_screen.dart';
-import '../../claude_developer/screens/claude_tool_simulator_screen.dart';
-import '../../cubit_and_state/screens/cubit_intro_screen.dart';
-import '../../cubit_and_state/screens/state_concept_screen.dart';
-import '../../flutter_advanced/screens/engine_internals_screen.dart';
-import '../../flutter_advanced/screens/isolates_concurrency_screen.dart';
-import '../../labs/screens/bpe_tokenizer_sandbox_screen.dart';
+import '../../ai_engineering/screens/ai_and_certifications_hub_screen.dart';
+import '../../coding_dsa/screens/coding_dsa_hub_screen.dart';
+import '../../ios_senior_prep/data/ios_prep_master_hierarchy_data.dart';
+import '../../ios_senior_prep/models/ios_prep_hierarchy_models.dart';
+import '../../ios_senior_prep/screens/ios_master_handbook_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_git_masterclass_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_global_search_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_interview_mode_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_staff_signals_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_system_design_screen.dart';
+import '../../ios_senior_prep/screens/ios_prep_topic_detail_screen.dart';
+import '../../ios_senior_prep/screens/ios_senior_prep_hub_screen.dart';
+import '../../ios_senior_prep/services/prep_progress_service.dart';
 import '../../labs/screens/interactive_labs_screen.dart';
-import '../../lecture_slides/screens/lecture_slides_screen.dart';
-import '../../repository_pattern/screens/user_directory_screen.dart';
-import '../../stless_vs_stful/screens/stless_vs_stful_screen.dart';
-import '../../swiftui_track/screens/swiftui_hub_screen.dart';
-import '../../swiftui_track/screens/swiftui_rosetta_screen.dart';
-import '../../swiftui_track/screens/swiftui_state_simulator_screen.dart';
-import '../../ui_components/screens/ui_catalog_screen.dart';
+import '../../mobile_dev/screens/mobile_dev_hub_screen.dart';
 
-/// Main Dashboard of FlutterLearningHub.
-/// Hosts 4 core navigation experiences:
-/// 1. Curriculum Tracks (Flutter, SwiftUI, Claude Developer & Architect)
-/// 2. AI Engineering Roadmap (27-Lesson Child-to-Master Curriculum)
-/// 3. Professional Certification & Timed Exams Hub
-/// 4. Interactive Runtime Labs & Sandboxes
+/// Redesigned Home Dashboard — Tactile, modern, engaging, and user-friendly.
+/// Layout:
+/// 1. Greeting + Search & Suggestion Chips
+/// 2. Continue Learning Hero Card (interactive with stats)
+/// 3. Quick Action Rail (thumb-friendly shortcuts)
+/// 4. Daily Architectural Challenge (Question of the Day)
+/// 5. Explore Tracks Grid (Primary curriculum navigation)
+/// 6. Recently Studied List (status dots, direct resume)
 class HomeDashboardScreen extends StatefulWidget {
   const HomeDashboardScreen({super.key});
 
@@ -36,321 +33,72 @@ class HomeDashboardScreen extends StatefulWidget {
 }
 
 class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
-  int _selectedBottomNavIndex = 0; // 0: Curriculum, 1: AI Roadmap, 2: Certifications, 3: Labs
-  int _selectedTrackIndex = 0; // 0: All, 1: Flutter, 2: SwiftUI, 3: Claude, 4: Rosetta Stone, 5: Certification
+  int _selectedTab = 0;
+  final int _mobileDevInitialSubTab = 0;
+  int _aiCertInitialSubTab = 0;
+  bool _challengeRevealed = false;
 
-  Color _tierColor(String tier) {
-    switch (tier) {
-      case 'Basic':
-        return const Color(0xFF10B981);
-      case 'Intermediate':
-        return const Color(0xFF0284C7);
-      case 'Advanced':
-        return const Color(0xFFEA580C);
-      case 'Master':
-        return const Color(0xFF9333EA);
-      default:
-        return const Color(0xFF64748B);
-    }
-  }
+  // Pre-indexed map for O(1) recent topic resolution
+  static final Map<String, ({MasterTopic topic, PrepDomainHierarchy domain})> _topicIndex = {
+    for (final d in masterPrepDomains)
+      for (final m in d.modules)
+        for (final t in m.topics)
+          t.id: (topic: t, domain: d),
+  };
+
+  // Semantic color tokens
+  static const _primary = Color(0xFF4F46E5);
+  static const _primaryLight = Color(0xFF818CF8);
+  static const _accent = Color(0xFF0EA5E9);
+  static const _success = Color(0xFF10B981);
+  static const _warning = Color(0xFFF59E0B);
+  static const _violet = Color(0xFF8B5CF6);
+
+  Color _text(bool d) => d ? const Color(0xFFF1F5F9) : const Color(0xFF0F172A);
+  Color _sub(bool d) => d ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+  Color _card(bool d) => d ? const Color(0xFF1E293B) : Colors.white;
+  Color _border(bool d) => d ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+  Color _bg(bool d) => d ? const Color(0xFF0B0F17) : const Color(0xFFF8FAFC);
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    final allModules = [
-      // ------------------------------------------
-      // TRACK 1: FLUTTER & DART MODULES (Basic ➔ Master)
-      // ------------------------------------------
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Basic UI Components',
-        description:
-            'Interactive sandboxes for Row, Column, Stack, Buttons, Text, Inputs, Lists, Grids, and Dialogs.',
-        icon: Icons.widgets_rounded,
-        tag: 'Flutter UI',
-        masteryLevel: 'Basic',
-        color: const Color(0xFF2563EB),
-        screen: const UiCatalogScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Stateless vs Stateful',
-        description:
-            'Deep dive into stless & stful, Widget Tree immutability, setState() mechanics, and the full State lifecycle.',
-        icon: Icons.compare_arrows_rounded,
-        tag: 'Fundamentals',
-        masteryLevel: 'Basic',
-        color: const Color(0xFF8B5CF6),
-        screen: const StlessVsStfulScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Cubit & State Management',
-        description:
-            'Lightweight BLoC without boilerplate. Learn BlocProvider, BlocBuilder, BlocListener, and BlocConsumer.',
-        icon: Icons.bolt_rounded,
-        tag: 'State Mgmt',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF0284C7),
-        screen: const CubitIntroScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Repository Pattern & Data Flow',
-        description:
-            'Clean Architecture end-to-end: Model ➔ DataSource ➔ Repository Contract ➔ Cubit ➔ UI with failure simulation.',
-        icon: Icons.account_tree_rounded,
-        tag: 'Clean Arch',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF0D9488),
-        screen: const UserDirectoryScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'State Architecture Principles',
-        description:
-            'Master UI = f(State), Ephemeral vs App State, Equatable value equality, and the 4 Canonical UI States.',
-        icon: Icons.psychology_rounded,
-        tag: 'Core Concepts',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFFEA580C),
-        screen: const StateConceptScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Practice Coding Challenges',
-        description:
-            'Interactive challenges: Lightbulb setState(), SearchCubit with debouncing, and AuthRepository with retry.',
-        icon: Icons.emoji_events_rounded,
-        tag: 'Hands-On Lab',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF10B981),
-        screen: const ChallengesScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Isolates & Event Loop Concurrency',
-        description:
-            'Deep dive into the Dart single-threaded event loop, microtasks, background Isolate spawning, compute(), and zero-jank frame rendering.',
-        icon: Icons.alt_route_rounded,
-        tag: 'Concurrency Lab',
-        masteryLevel: 'Advanced',
-        color: const Color(0xFFEA580C),
-        screen: const IsolatesConcurrencyScreen(),
-      ),
-      _LearningModule(
-        trackId: 1,
-        trackName: 'Flutter',
-        title: 'Engine Internals & Custom RenderBox',
-        description:
-            'Explore the Three Trees (Widget ➔ Element ➔ RenderObject), the Layout protocol (constraints down, sizes up), and Dart FFI C/C++ dynamic bindings.',
-        icon: Icons.layers_rounded,
-        tag: 'Engine Architecture',
-        masteryLevel: 'Master',
-        color: const Color(0xFF9333EA),
-        screen: const EngineInternalsScreen(),
-      ),
-
-      // ------------------------------------------
-      // TRACK 2: SWIFTUI & MODERN IOS MODULES (Basic ➔ Master)
-      // ------------------------------------------
-      _LearningModule(
-        trackId: 2,
-        trackName: 'SwiftUI',
-        title: 'SwiftUI & Modern iOS Track',
-        description:
-            'Declarative Apple UI: View protocols, Stacks (VStack/HStack/ZStack), @State, @Binding, @Observable, async/await, and Clean MVVM.',
-        icon: Icons.apple_rounded,
-        tag: 'iOS 17+ & Swift',
-        masteryLevel: 'Master',
-        color: const Color(0xFF4F46E5),
-        screen: const SwiftUiHubScreen(),
-      ),
-      _LearningModule(
-        trackId: 2,
-        trackName: 'SwiftUI',
-        title: 'SwiftUI State & Data Flow Simulator',
-        description:
-            'Interactive runtime lab: Test @State vs @Binding two-way data flow, iOS 17 @Observable tasks, and @Environment subtree propagation.',
-        icon: Icons.play_circle_outline_rounded,
-        tag: 'Interactive Lab',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF6366F1),
-        screen: const SwiftUiStateSimulatorScreen(),
-      ),
-
-      // ------------------------------------------
-      // TRACK 3: CLAUDE DEVELOPER & ARCHITECT MODULES (Basic ➔ Master)
-      // ------------------------------------------
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'Become a Complete Claude Developer',
-        description:
-            'Comprehensive developer guide: Claude 3.7 Extended Thinking, Prompt Engineering, Tool Use, MCP, Claude Code, Caching, and 6 Agentic Workflows.',
-        icon: Icons.psychology_rounded,
-        tag: '9 Modules + Labs',
-        masteryLevel: 'Master',
-        color: const Color(0xFFD97706),
-        screen: const ClaudeDeveloperHubScreen(),
-      ),
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'Claude Certified Architect Guide',
-        description:
-            'Based on https://claudecertificationguide.com/learn — Master the 5 official exam domains, 30 task modules, and Pearson VUE 10-Question Timed Mock Exam.',
-        icon: Icons.school_rounded,
-        tag: 'Timed Mock Exam',
-        masteryLevel: 'Advanced',
-        color: const Color(0xFFB45309),
-        screen: const ClaudeCurriculumScreen(),
-      ),
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'Claude Tool Use & Function Calling Lab',
-        description:
-            'Step through the 4-step tool execution loop with JSON schemas, tool_use dispatch, self-correcting error handling, and answer synthesis.',
-        icon: Icons.handyman_rounded,
-        tag: 'Interactive Sandbox',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF0D9488),
-        screen: const ClaudeToolSimulatorScreen(),
-      ),
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'Prompt Caching 90% Cost Calculator',
-        description:
-            'Calculate dollar savings and latency drops across Sonnet 3.7, Haiku, and Opus workloads. Master 5-min TTL and cache breakpoints.',
-        icon: Icons.savings_rounded,
-        tag: 'ROI Calculator',
-        masteryLevel: 'Advanced',
-        color: const Color(0xFF0284C7),
-        screen: const ClaudeCachingCalculatorScreen(),
-      ),
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'BPE Tokenizer & Context Window Lab',
-        description:
-            'Interactive Byte-Pair Encoding subword tokenization, character-to-token compression ratio, context capacity bar, and prompt cost estimation.',
-        icon: Icons.token_rounded,
-        tag: 'Subword & BPE',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF6366F1),
-        screen: const BpeTokenizerSandboxScreen(),
-      ),
-      _LearningModule(
-        trackId: 3,
-        trackName: 'Claude',
-        title: 'Child-to-Master AI Engineer & Claude Roadmap',
-        description:
-            'From-scratch AI algorithms (Backprop, Attention, Tokenizers) to production Claude API, MCP, Subagents, and CCDV-F certification.',
-        icon: Icons.alt_route_rounded,
-        tag: 'Full Roadmap',
-        masteryLevel: 'Master',
-        color: const Color(0xFF6366F1),
-        screen: const AiEngineerRoadmapScreen(),
-      ),
-
-      // ------------------------------------------
-      // TRACK 4: FLUTTER VS SWIFTUI COMPARISON
-      // ------------------------------------------
-      _LearningModule(
-        trackId: 4,
-        trackName: 'Flutter vs SwiftUI',
-        title: 'Flutter ➔ SwiftUI Rosetta Stone',
-        description:
-            'Direct side-by-side architectural mapping comparing Flutter widgets, Cubits, and layouts directly to their SwiftUI equivalents.',
-        icon: Icons.compare_arrows_rounded,
-        tag: 'Rosetta Stone',
-        masteryLevel: 'Intermediate',
-        color: const Color(0xFF6366F1),
-        screen: const SwiftUiRosettaScreen(),
-      ),
-
-      // ------------------------------------------
-      // TRACK 5: CERTIFICATIONS & TIMED MOCK EXAMS
-      // ------------------------------------------
-      _LearningModule(
-        trackId: 5,
-        trackName: 'Certification',
-        title: 'Professional Certifications & Timed Exams',
-        description:
-            'Interactive timed mock exams for Flutter Master, Apple SwiftUI, and Claude Architect. Earn authenticated digital credentials.',
-        icon: Icons.workspace_premium_rounded,
-        tag: 'Credentials',
-        masteryLevel: 'Master',
-        color: const Color(0xFFD4AF37),
-        screen: const CertificationsHubScreen(),
-      ),
-      _LearningModule(
-        trackId: 5,
-        trackName: 'Certification',
-        title: 'AI Engineering from Scratch ➔ Claude Master',
-        description:
-            'Interactive 5-level curriculum linking aiengineeringfromscratch.com, Claude Academy, and official Pearson VUE CCDV-F exams.',
-        icon: Icons.auto_awesome_rounded,
-        tag: 'Curriculum',
-        masteryLevel: 'Master',
-        color: const Color(0xFF8B5CF6),
-        screen: const AiEngineerRoadmapScreen(),
-      ),
-      _LearningModule(
-        trackId: 5,
-        trackName: 'Certification',
-        title: 'Interactive Runtime Labs & Sandboxes',
-        description:
-            'Central playground with 6 live execution engines: MCP Tool Simulator, Caching ROI Calculator, BPE Tokenizer, SwiftUI State, and Concurrency Isolates.',
-        icon: Icons.biotech_rounded,
-        tag: '6 Playgrounds',
-        masteryLevel: 'Master',
-        color: const Color(0xFF0D9488),
-        screen: const InteractiveLabsScreen(),
-      ),
-    ];
-
-    final filteredModules = _selectedTrackIndex == 0
-        ? allModules
-        : allModules.where((m) => m.trackId == _selectedTrackIndex).toList();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      // The Primary AppBar is rendered for Tab 0 (Curriculum Tracks)
-      // Other tabs manage their own top bars
-      appBar: _selectedBottomNavIndex == 0
+      backgroundColor: _bg(isDark),
+      appBar: _selectedTab == 0
           ? AppBar(
               title: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(6),
+                    width: 32,
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withAlpha(25),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4F46E5), Color(0xFF8B5CF6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(Icons.school_rounded, color: theme.colorScheme.primary, size: 22),
+                    child: const Icon(Icons.school_rounded, color: Colors.white, size: 18),
                   ),
                   const SizedBox(width: 10),
-                  const Expanded(
-                    child: Text(
-                      'Flutter Learning Hub',
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  const Text(
+                    'handyLearn',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, letterSpacing: -0.4),
                   ),
                 ],
               ),
               actions: [
-                // Instant Dual Theme Switcher (First IconButton in AppBar for test compatibility)
+                IconButton(
+                  icon: const Icon(Icons.search_rounded),
+                  tooltip: 'Search Topics',
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
+                  ),
+                ),
                 BlocBuilder<ThemeCubit, ThemeMode>(
                   builder: (context, themeMode) {
                     return IconButton(
@@ -359,752 +107,1048 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         color: isDark ? Colors.amber : const Color(0xFF334155),
                       ),
                       tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-                      onPressed: () {
-                        context.read<ThemeCubit>().toggleTheme();
-                      },
+                      onPressed: () => context.read<ThemeCubit>().toggleTheme(),
                     );
                   },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.alt_route_rounded, color: Color(0xFF818CF8)),
-                  tooltip: 'AI Engineer & Claude Mastery Roadmap',
-                  onPressed: () {
-                    setState(() => _selectedBottomNavIndex = 1);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.co_present_rounded),
-                  tooltip: 'Lecture Presentation Slides',
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LectureSlidesScreen()),
-                    );
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.workspace_premium_rounded, color: Color(0xFFF59E0B)),
-                  tooltip: 'Certification & Exam Center',
-                  onPressed: () {
-                    setState(() => _selectedBottomNavIndex = 2);
-                  },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.help_outline_rounded),
-                  tooltip: 'Architecture Cheatsheet',
-                  onPressed: () => _showCheatsheet(context),
                 ),
               ],
             )
           : null,
-
-      // Navigation Bar (Material 3 Bottom Navigation)
       bottomNavigationBar: NavigationBar(
-        selectedIndex: _selectedBottomNavIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            _selectedBottomNavIndex = index;
-          });
-        },
+        selectedIndex: _selectedTab,
+        onDestinationSelected: (i) => setState(() => _selectedTab = i),
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.school_outlined),
-            selectedIcon: Icon(Icons.school_rounded),
-            label: 'Curriculum',
+            icon: Icon(Icons.home_outlined),
+            selectedIcon: Icon(Icons.home_rounded),
+            label: 'Home',
           ),
           NavigationDestination(
-            icon: Icon(Icons.alt_route_outlined),
-            selectedIcon: Icon(Icons.alt_route_rounded),
-            label: 'AI Roadmap',
+            icon: Icon(Icons.psychology_outlined),
+            selectedIcon: Icon(Icons.psychology_rounded),
+            label: 'Cloud & AI',
           ),
           NavigationDestination(
-            icon: Icon(Icons.workspace_premium_outlined),
-            selectedIcon: Icon(Icons.workspace_premium_rounded),
-            label: 'Certifications',
+            icon: Icon(Icons.phone_iphone_outlined),
+            selectedIcon: Icon(Icons.phone_iphone_rounded),
+            label: 'Flutter & UI',
           ),
           NavigationDestination(
-            icon: Icon(Icons.biotech_outlined),
-            selectedIcon: Icon(Icons.biotech_rounded),
-            label: 'Labs',
+            icon: Icon(Icons.apple_outlined),
+            selectedIcon: Icon(Icons.apple_rounded),
+            label: 'iOS Prep',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.code_rounded),
+            selectedIcon: Icon(Icons.code_rounded),
+            label: 'Coding & DSA',
           ),
         ],
       ),
-
-      body: _buildCurrentTab(context, theme, isDark, allModules, filteredModules),
+      body: _buildBody(isDark),
     );
   }
 
-  Widget _buildCurrentTab(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    List<_LearningModule> allModules,
-    List<_LearningModule> filteredModules,
-  ) {
-    switch (_selectedBottomNavIndex) {
-      case 1:
-        return const AiEngineerRoadmapScreen();
-      case 2:
-        return const CertificationsHubScreen();
-      case 3:
-        return const InteractiveLabsScreen();
-      case 0:
-      default:
-        return _buildCurriculumTab(context, theme, isDark, allModules, filteredModules);
-    }
+  Widget _buildBody(bool isDark) {
+    return IndexedStack(
+      index: _selectedTab,
+      children: [
+        _buildHomeTab(isDark),
+        AiAndCertificationsHubScreen(initialSubTab: _aiCertInitialSubTab),
+        MobileDevHubScreen(initialSubTab: _mobileDevInitialSubTab),
+        const IosSeniorPrepHubScreen(),
+        const CodingDsaHubScreen(),
+      ],
+    );
   }
 
-  Widget _buildCurriculumTab(
-    BuildContext context,
-    ThemeData theme,
-    bool isDark,
-    List<_LearningModule> allModules,
-    List<_LearningModule> filteredModules,
-  ) {
+  Widget _buildHomeTab(bool isDark) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
-        // Hero Welcome Card
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [const Color(0xFF1E3A8A), const Color(0xFF1E293B)]
-                  : [const Color(0xFF2563EB), const Color(0xFF1D4ED8)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF2563EB).withAlpha(50),
-                blurRadius: 16,
-                offset: const Offset(0, 6),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        // 1. GREETING & STATS & SEARCH
+        _buildGreeting(isDark),
+        const SizedBox(height: 16),
+
+        // 2. CONTINUE LEARNING (hero progress card)
+        _buildContinueCard(isDark),
+        const SizedBox(height: 16),
+
+        // 3. QUICK ACTIONS RAIL (ergonomic thumb shortcuts)
+        _buildQuickActionRail(isDark),
+        const SizedBox(height: 20),
+
+        // 4. DAILY ARCHITECTURAL CHALLENGE (interactive bite)
+        _buildDailyChallenge(isDark),
+        const SizedBox(height: 20),
+
+        // 5. EXPLORE TRACKS GRID (primary navigation)
+        _buildExploreSection(isDark),
+        const SizedBox(height: 20),
+
+        // 6. RECENTLY STUDIED
+        _buildRecentSection(isDark),
+        const SizedBox(height: 28),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // 1. GREETING + STATS + SEARCH
+  // ─────────────────────────────────────────────
+  Widget _buildGreeting(bool isDark) {
+    final hour = DateTime.now().hour;
+    final greeting = hour < 12 ? 'Good morning' : (hour < 17 ? 'Good afternoon' : 'Good evening');
+    final greetingIcon = hour < 12 ? Icons.wb_sunny_rounded : (hour < 17 ? Icons.wb_cloudy_rounded : Icons.nights_stay_rounded);
+    final iconColor = hour < 12 ? Colors.amber : (hour < 17 ? Colors.orangeAccent : Colors.indigoAccent);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(50),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Text(
-                      'MULTI-TRACK CURRICULUM',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 11,
-                        letterSpacing: 0.5,
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          '$greeting, Navneet',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                            color: _text(isDark),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 6),
+                      Icon(greetingIcon, size: 20, color: iconColor),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  const Expanded(
-                    child: Text(
-                      'Flutter • SwiftUI • Claude • AI',
-                      textAlign: TextAlign.end,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: Colors.white70, fontSize: 11.5),
+                  const SizedBox(height: 2),
+                  Text(
+                    'What would you like to master today?',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: _sub(isDark)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            // Streak badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFEF3C7),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? const Color(0xFF334155) : const Color(0xFFFDE68A),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Text('🔥', style: TextStyle(fontSize: 13)),
+                  const SizedBox(width: 4),
+                  Text(
+                    '3 Days',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.amber : const Color(0xFFB45309),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              const Text(
-                'Multi-Platform & AI Engineering Hub',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Master Flutter architecture, native SwiftUI for iOS, Claude Developer & Architect tracks, and from-scratch AI algorithms from Apprentice to Master.',
-                style: TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
-              ),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Quick Navigation Carousel Cards (AI Roadmap, Certifications, Labs)
-        Row(
-          children: [
-            Expanded(
-              child: _quickAccessCard(
-                title: 'AI Roadmap',
-                subtitle: '27 Lessons',
-                icon: Icons.alt_route_rounded,
-                color: const Color(0xFF6366F1),
-                isDark: isDark,
-                onTap: () => setState(() => _selectedBottomNavIndex = 1),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _quickAccessCard(
-                title: 'Cert Center',
-                subtitle: '3 Mock Exams',
-                icon: Icons.workspace_premium_rounded,
-                color: const Color(0xFFD97706),
-                isDark: isDark,
-                onTap: () => setState(() => _selectedBottomNavIndex = 2),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: _quickAccessCard(
-                title: 'Live Labs',
-                subtitle: '6 Playgrounds',
-                icon: Icons.biotech_rounded,
-                color: const Color(0xFF0D9488),
-                isDark: isDark,
-                onTap: () => setState(() => _selectedBottomNavIndex = 3),
-              ),
             ),
           ],
         ),
-
         const SizedBox(height: 14),
 
-        // Certification & Exam Center Banner
-        InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            setState(() => _selectedBottomNavIndex = 2);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF2B2516), const Color(0xFF1E1A11)]
-                    : [const Color(0xFFFFFBEB), const Color(0xFFFEF3C7)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFD4AF37).withAlpha(120),
-                width: 1.2,
-              ),
+        // Search bar
+        Semantics(
+          button: true,
+          label: 'Search topics, domains, interview Q&A',
+          hint: 'Double tap to open global search',
+          child: GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
             ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFD4AF37).withAlpha(40),
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 46),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: _card(isDark),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: _border(isDark)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
                   ),
-                  child: const Icon(
-                    Icons.workspace_premium_rounded,
-                    color: Color(0xFFD97706),
-                    size: 26,
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.search_rounded, size: 20, color: _sub(isDark)),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Search topics, domains, interview Q&A...',
+                      style: TextStyle(fontSize: 13, color: _sub(isDark)),
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Text(
-                            'Certification & Exam Center',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFB45309),
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Icon(Icons.verified, size: 14, color: Color(0xFFD97706)),
-                        ],
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _primary.withValues(alpha: isDark ? 0.2 : 0.08),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      '⌘K',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? _primaryLight : _primary,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Timed mock exams for Flutter, SwiftUI & Claude. Earn digital certificates.',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: isDark ? Colors.grey.shade400 : Colors.brown.shade700,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: Color(0xFFD97706),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
+        const SizedBox(height: 10),
 
-        const SizedBox(height: 12),
-
-        // AI Engineering from Scratch ➔ Claude Master Banner
-        InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            setState(() => _selectedBottomNavIndex = 1);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isDark
-                    ? [const Color(0xFF1E1B4B), const Color(0xFF18153A)]
-                    : [const Color(0xFFEEF2FF), const Color(0xFFE0E7FF)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFF6366F1).withAlpha(120),
-                width: 1.2,
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFF6366F1).withAlpha(40),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome_rounded,
-                    color: Color(0xFF6366F1),
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Text(
-                            'AI Engineer from Scratch ➔ Claude Master',
-                            style: TextStyle(
-                              fontSize: 13.5,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF4F46E5),
-                            ),
-                          ),
-                          SizedBox(width: 6),
-                          Icon(Icons.bolt_rounded, size: 14, color: Color(0xFF6366F1)),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Child-to-Master roadmap: 27 comprehensive lessons, backprop, Claude API & CCDV-F blueprint.',
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: isDark ? Colors.grey.shade400 : Colors.indigo.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 14,
-                  color: Color(0xFF6366F1),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 14),
-
-        // Overview stats row
-        Row(
-          children: [
-            _buildStatBadge(context, '5 Tracks', 'Curriculum', Icons.school_rounded),
-            const SizedBox(width: 8),
-            _buildStatBadge(context, '27 Lessons', 'From Scratch', Icons.auto_awesome_rounded),
-            const SizedBox(width: 8),
-            _buildStatBadge(context, '6 Playgrounds', 'Live Labs', Icons.biotech_rounded),
-          ],
-        ),
-
-        const SizedBox(height: 18),
-
-        // Track Filter Chips
+        // Quick topic pills
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildTrackChip(0, 'All Tracks (${allModules.length})', Icons.dashboard_rounded),
-              const SizedBox(width: 8),
-              _buildTrackChip(1, 'Flutter (8)', Icons.flutter_dash),
-              const SizedBox(width: 8),
-              _buildTrackChip(2, 'SwiftUI (2)', Icons.apple_rounded),
-              const SizedBox(width: 8),
-              _buildTrackChip(3, 'Claude Developer (6)', Icons.psychology_alt_rounded),
-              const SizedBox(width: 8),
-              _buildTrackChip(4, 'Flutter vs SwiftUI (1)', Icons.compare_arrows_rounded),
-              const SizedBox(width: 8),
-              _buildTrackChip(5, 'Certifications & Labs (3)', Icons.workspace_premium_rounded),
+              _searchSuggestionChip('Swift Concurrency', isDark),
+              _searchSuggestionChip('Flutter Rosetta', isDark),
+              _searchSuggestionChip('Claude MCP', isDark),
+              _searchSuggestionChip('System Design', isDark),
+              _searchSuggestionChip('Git Puzzles', isDark),
             ],
           ),
         ),
+      ],
+    );
+  }
 
-        const SizedBox(height: 16),
-
-        // Section Title
-        Text(
-          _selectedTrackIndex == 0
-              ? 'All Learning Modules'
-              : (_selectedTrackIndex == 1
-                  ? 'Flutter & Dart Architecture Modules'
-                  : (_selectedTrackIndex == 2
-                      ? 'SwiftUI & Modern iOS Modules'
-                      : (_selectedTrackIndex == 3
-                          ? 'Claude Developer & Architect Modules'
-                          : (_selectedTrackIndex == 4
-                              ? 'Flutter vs SwiftUI Rosetta Stone'
-                              : 'Professional Certification & Exams')))),
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
-            letterSpacing: -0.3,
+  Widget _searchSuggestionChip(String query, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: Semantics(
+        button: true,
+        label: 'Search suggestion: $query',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PrepGlobalSearchScreen(initialQuery: query),
+            ),
+          ),
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _border(isDark)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.trending_up_rounded, size: 14, color: _sub(isDark)),
+                const SizedBox(width: 4),
+                Text(
+                  query,
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _sub(isDark)),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+      ),
+    );
+  }
 
-        // Module Cards List
-        ...filteredModules.map((module) {
-          return Card(
-            margin: const EdgeInsets.only(bottom: 14),
+  // ─────────────────────────────────────────────
+  // 2. CONTINUE LEARNING HERO CARD
+  // ─────────────────────────────────────────────
+  Widget _buildContinueCard(bool isDark) {
+    return AnimatedBuilder(
+      animation: PrepProgressService.instance,
+      builder: (context, _) {
+        final ps = PrepProgressService.instance;
+        final pct = (ps.overallProgressPercentage * 100).toInt();
+        final module = ps.activeModule;
+        final topic = ps.activeTopic;
+        final hasStarted = ps.hasStarted;
+
+        return Container(
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: _primary.withValues(alpha: 0.3),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Material(
+            color: Colors.transparent,
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => module.screen),
-                );
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Row(
+              onTap: () => _navigateToActivePrep(),
+              child: MergeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: module.color.withAlpha(25),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Icon(module.icon, color: module.color, size: 28),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: _tierColor(module.masteryLevel).withAlpha(25),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(
-                                    color: _tierColor(module.masteryLevel).withAlpha(120),
-                                    width: 0.8,
-                                  ),
-                                ),
-                                child: Text(
-                                  module.masteryLevel.toUpperCase(),
-                                  style: TextStyle(
-                                    color: _tierColor(module.masteryLevel),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 9.5,
-                                    letterSpacing: 0.3,
-                                  ),
-                                ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(6),
                               ),
-                              const SizedBox(width: 6),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: module.color.withAlpha(25),
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  module.tag,
-                                  style: TextStyle(
-                                    color: module.color,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 10.5,
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.apple_rounded, size: 12, color: Colors.white),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    hasStarted ? 'In Progress' : 'Recommended Path',
+                                    style: const TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
                                   ),
-                                ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$pct% Completed',
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      hasStarted ? module : 'iOS Senior & Lead Preparation',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      hasStarted ? topic : '32 Master Domains • 128 Topics • 100 Q&A Bank',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.white.withValues(alpha: 0.9),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: ps.overallProgressPercentage,
+                        minHeight: 5,
+                        backgroundColor: Colors.white.withValues(alpha: 0.2),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF34D399)),
+                        semanticsLabel: 'Curriculum completion progress',
+                        semanticsValue: '$pct%',
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${ps.completedTopicsCount}/${ps.totalTopicsCount} topics mastered',
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            module.title,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                hasStarted ? 'Resume Topic' : 'Start Journey',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: Color(0xFF4338CA),
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.arrow_forward_rounded, size: 14, color: Color(0xFF4338CA)),
+                            ],
                           ),
-                          const SizedBox(height: 6),
-                          Text(
-                            module.description,
-                            style: TextStyle(
-                              fontSize: 13,
-                              height: 1.35,
-                              color: isDark ? Colors.white70 : const Color(0xFF64748B),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Padding(
-                      padding: EdgeInsets.only(top: 14),
-                      child: Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
-          );
-        }),
-        const SizedBox(height: 20),
-      ],
-    );
-  }
-
-  Widget _quickAccessCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required bool isDark,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-            color: color.withAlpha(60),
-            width: 1.2,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: color.withAlpha(isDark ? 20 : 15),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
         ),
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withAlpha(25),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(icon, color: color, size: 20),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 12.5,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 10.5,
-                color: isDark ? Colors.grey.shade400 : Colors.grey.shade600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTrackChip(int index, String label, IconData icon) {
-    final isSelected = _selectedTrackIndex == index;
-    final theme = Theme.of(context);
-
-    return ChoiceChip(
-      selected: isSelected,
-      avatar: Icon(
-        icon,
-        size: 16,
-        color: isSelected ? Colors.white : theme.colorScheme.primary,
-      ),
-      label: Text(label),
-      onSelected: (val) {
-        if (val) setState(() => _selectedTrackIndex = index);
+        );
       },
     );
   }
 
-  Widget _buildStatBadge(BuildContext context, String value, String label, IconData icon) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-          ),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(icon, size: 16, color: theme.colorScheme.primary),
-                const SizedBox(width: 6),
-                Text(
-                  value,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13.5),
-                ),
-              ],
+  // ─────────────────────────────────────────────
+  // 3. QUICK ACTION RAIL (thumb-friendly ergonomics)
+  // ─────────────────────────────────────────────
+  Widget _buildQuickActionRail(bool isDark) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _quickActionPill(
+            icon: Icons.auto_stories_rounded,
+            label: 'Swift Handbook',
+            color: const Color(0xFFF05138),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const IosMasterHandbookScreen()),
             ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: isDark ? Colors.white60 : const Color(0xFF64748B),
+          ),
+          _quickActionPill(
+            icon: Icons.mic_rounded,
+            label: 'Interview Mode',
+            color: const Color(0xFFEC4899),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrepInterviewModeScreen(initialQuestionCount: 10)),
+            ),
+          ),
+          _quickActionPill(
+            icon: Icons.architecture_rounded,
+            label: 'System Design',
+            color: const Color(0xFF8B5CF6),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrepSystemDesignScreen()),
+            ),
+          ),
+          _quickActionPill(
+            icon: Icons.terminal_rounded,
+            label: 'Git Masterclass',
+            color: const Color(0xFFF97316),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrepGitMasterclassScreen()),
+            ),
+          ),
+          _quickActionPill(
+            icon: Icons.verified_user_rounded,
+            label: 'Staff Signals',
+            color: const Color(0xFF10B981),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const PrepStaffSignalsScreen()),
+            ),
+          ),
+          _quickActionPill(
+            icon: Icons.biotech_rounded,
+            label: 'Interactive Labs',
+            color: const Color(0xFF0EA5E9),
+            isDark: isDark,
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const InteractiveLabsScreen()),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _quickActionPill({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(10),
+            onTap: onTap,
+            child: Container(
+              constraints: const BoxConstraints(minHeight: 48),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: _card(isDark),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: _border(isDark)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(icon, size: 16, color: color),
+                  const SizedBox(width: 6),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: _text(isDark),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  void _showCheatsheet(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (ctx) => DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.7,
-        maxChildSize: 0.9,
-        minChildSize: 0.5,
-        builder: (_, scrollCtrl) => ListView(
-          controller: scrollCtrl,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          children: const [
-            Text(
-              'Architecture & Multi-Track Cheatsheet',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 12),
-            _CheatsheetItem(
-              title: '1. Flutter: UI = f(State)',
-              body:
-                  'Flutter is declarative. Never mutate widgets in place. State changes trigger new builds.',
-            ),
-            _CheatsheetItem(
-              title: '2. Flutter: Cubit (flutter_bloc)',
-              body:
-                  'Functions emit states. Use BlocBuilder to render UI, BlocListener for side-effects, and BlocConsumer for both.',
-            ),
-            _CheatsheetItem(
-              title: '3. Claude Architect: 5 Exam Domains',
-              body:
-                  'Domain 1: Agentic Loops (27%), Domain 2: Tool Design & MCP (18%), Domain 3: Claude Code (20%), Domain 4: Prompt Eng & XML (20%), Domain 5: Context & Caching (15%). Pass score: 720/1000.',
-            ),
-            _CheatsheetItem(
-              title: '4. SwiftUI: Declarative Stacks & @Observable',
-              body:
-                  'SwiftUI views conform to View protocol. Use VStack/HStack/ZStack for layouts, @State for local values, and @Observable classes for ViewModels.',
-            ),
-            _CheatsheetItem(
-              title: '5. Clean Architecture Equivalence',
-              body:
-                  'Both Flutter and SwiftUI implement Clean Architecture identically: Abstract interface (Dart abstract class / Swift protocol) separates networking from presentation.',
-            ),
-            _CheatsheetItem(
-              title: '6. AI Engineering from Scratch',
-              body:
-                  'Tokens are statistical fragments (BPE). Backpropagation propagates error deltas via chain rule. Attention computes query-key dot product weights to aggregate value vectors.',
-            ),
-            SizedBox(height: 24),
-          ],
-        ),
+  // ─────────────────────────────────────────────
+  // 4. DAILY ARCHITECTURAL CHALLENGE (Interactive Snack)
+  // ─────────────────────────────────────────────
+  Widget _buildDailyChallenge(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _card(isDark),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _border(isDark)),
       ),
-    );
-  }
-}
-
-class _LearningModule {
-  final int trackId;
-  final String trackName;
-  final String title;
-  final String description;
-  final IconData icon;
-  final String tag;
-  final String masteryLevel; // 'Basic', 'Intermediate', 'Advanced', 'Master'
-  final Color color;
-  final Widget screen;
-
-  const _LearningModule({
-    required this.trackId,
-    required this.trackName,
-    required this.title,
-    required this.description,
-    required this.icon,
-    required this.tag,
-    required this.masteryLevel,
-    required this.color,
-    required this.screen,
-  });
-}
-
-class _CheatsheetItem extends StatelessWidget {
-  final String title;
-  final String body;
-
-  const _CheatsheetItem({required this.title, required this.body});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-          const SizedBox(height: 3),
-          Text(body, style: const TextStyle(fontSize: 13, height: 1.3, color: Colors.grey)),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(Icons.lightbulb_rounded, size: 18, color: Color(0xFFF59E0B)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Question of the Day',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: _text(isDark),
+                      ),
+                    ),
+                    Text(
+                      'High-Frequency Senior iOS & Staff Interview Signal',
+                      style: TextStyle(fontSize: 11, color: _sub(isDark)),
+                    ),
+                  ],
+                ),
+              ),
+              Semantics(
+                button: true,
+                label: _challengeRevealed ? 'Hide daily challenge answer' : 'Reveal daily challenge answer',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(8),
+                  onTap: () => setState(() => _challengeRevealed = !_challengeRevealed),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        child: Text(
+                          _challengeRevealed ? 'Hide' : 'Reveal',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: _primaryLight,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Why is [weak self] required over [unowned self] inside an escaping asynchronous Task that outlives the enclosing UIViewController?',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+              color: _text(isDark),
+            ),
+          ),
+          if (_challengeRevealed) ...[
+            const SizedBox(height: 10),
+            Semantics(
+              container: true,
+              liveRegion: true,
+              label: 'Daily architectural challenge answer revealed',
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF10B981)),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Staff Calibration Signal',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w700,
+                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '`unowned` assumes memory is never nil. If the VC pops while network is in flight, referencing `unowned self` crashes instantly with EXC_BAD_ACCESS. `[weak self]` safely zeroes out into `nil`, allowing safe `guard let self else { return }` early exit.',
+                      style: TextStyle(fontSize: 12, height: 1.4, color: _sub(isDark)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // 5. EXPLORE TRACKS GRID (2×3 category cards)
+  // ─────────────────────────────────────────────
+  Widget _buildExploreSection(bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Explore Tracks',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: _text(isDark),
+                letterSpacing: -0.3,
+              ),
+            ),
+            Text(
+              '6 Curriculums',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _sub(isDark)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        GridView.count(
+          crossAxisCount: 3,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 0.84,
+          children: [
+            _exploreCard(
+              icon: Icons.psychology_rounded,
+              title: 'Cloud & AI',
+              subtitle: 'Agentic & MCP',
+              color: _violet,
+              isDark: isDark,
+              onTap: () => setState(() => _selectedTab = 1),
+            ),
+            _exploreCard(
+              icon: Icons.flutter_dash_rounded,
+              title: 'Flutter & UI',
+              subtitle: 'State & Rosetta',
+              color: _accent,
+              isDark: isDark,
+              onTap: () => setState(() => _selectedTab = 2),
+            ),
+            _exploreCard(
+              icon: Icons.apple_rounded,
+              title: 'iOS Prep',
+              subtitle: '32 Domains',
+              color: _primary,
+              isDark: isDark,
+              onTap: () => setState(() => _selectedTab = 3),
+            ),
+            _exploreCard(
+              icon: Icons.code_rounded,
+              title: 'Coding & DSA',
+              subtitle: 'Patterns & Algo',
+              color: const Color(0xFFF97316),
+              isDark: isDark,
+              onTap: () => setState(() => _selectedTab = 4),
+            ),
+            _exploreCard(
+              icon: Icons.biotech_rounded,
+              title: 'Labs',
+              subtitle: 'Sandboxes',
+              color: _success,
+              isDark: isDark,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const InteractiveLabsScreen()),
+              ),
+            ),
+            _exploreCard(
+              icon: Icons.workspace_premium_rounded,
+              title: 'Certs',
+              subtitle: 'Mock Exams',
+              color: _warning,
+              isDark: isDark,
+              onTap: () => setState(() {
+                _selectedTab = 1;
+                _aiCertInitialSubTab = 1;
+              }),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _exploreCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required bool isDark,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: _card(isDark),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _border(isDark)),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: _text(isDark),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 2),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w500,
+                    color: _sub(isDark),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // 6. RECENTLY STUDIED
+  // ─────────────────────────────────────────────
+  Widget _buildRecentSection(bool isDark) {
+    return AnimatedBuilder(
+      animation: PrepProgressService.instance,
+      builder: (context, _) {
+        final ps = PrepProgressService.instance;
+        final recentIds = ps.recentlyStudiedTopicIds;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Recently Studied',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: _text(isDark),
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                if (recentIds.isNotEmpty)
+                  Text(
+                    '${recentIds.length} topics',
+                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _sub(isDark)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            if (recentIds.isEmpty)
+              _buildEmptyRecent(isDark)
+            else
+              ...recentIds.take(5).map((id) => _buildRecentItem(id, isDark, ps)),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyRecent(bool isDark) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: _card(isDark),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _border(isDark)),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.school_outlined, size: 32, color: _sub(isDark)),
+          const SizedBox(height: 8),
+          Text(
+            'No topics studied yet',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _text(isDark)),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Tap the Continue card above or explore any track to begin learning',
+            style: TextStyle(fontSize: 12, color: _sub(isDark)),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentItem(String topicId, bool isDark, PrepProgressService ps) {
+    final match = _topicIndex[topicId];
+    if (match == null) return const SizedBox.shrink();
+
+    final topic = match.topic;
+    final domain = match.domain;
+
+    final status = ps.getTopicStatus(topicId);
+    final statusColor = switch (status) {
+      TopicMasteryStatus.mastered => _success,
+      TopicMasteryStatus.completed => _primary,
+      TopicMasteryStatus.inProgress => _warning,
+      TopicMasteryStatus.notStarted => _sub(isDark),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () {
+            ps.recordTopicStudied(topic.id);
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PrepTopicDetailScreen(
+                  topic: topic,
+                  domainTitle: domain.title,
+                  domainNumber: domain.domainNumber,
+                ),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: _card(isDark),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _border(isDark)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        topic.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _text(isDark)),
+                      ),
+                      Text(
+                        'D${domain.domainNumber.toString().padLeft(2, '0')} • ${domain.title}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 11, color: _sub(isDark)),
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    status.label,
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(Icons.chevron_right_rounded, size: 16, color: _sub(isDark)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // NAVIGATION HELPERS
+  // ─────────────────────────────────────────────
+  void _navigateToActivePrep() {
+    final ps = PrepProgressService.instance;
+    final domainNum = ps.activeDomainNumber;
+    final targetDomain = masterPrepDomains.firstWhere(
+      (d) => d.domainNumber == domainNum,
+      orElse: () => masterPrepDomains.first,
+    );
+    final topic = targetDomain.modules.first.topics.first;
+    ps.recordTopicStudied(topic.id);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PrepTopicDetailScreen(
+          topic: topic,
+          domainTitle: targetDomain.title,
+          domainNumber: targetDomain.domainNumber,
+        ),
       ),
     );
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/claude_developer/screens/claude_developer_hub_screen.dart';
-import 'package:flutter_learning_hub/features/claude_developer/screens/claude_tool_simulator_screen.dart';
-import 'package:flutter_learning_hub/features/claude_developer/screens/claude_caching_calculator_screen.dart';
-import 'package:flutter_learning_hub/features/claude_developer/screens/claude_developer_topic_detail_screen.dart';
-import 'package:flutter_learning_hub/features/claude_developer/models/claude_developer_topic.dart';
+import 'package:handy_learn/features/claude_developer/screens/claude_developer_hub_screen.dart';
+import 'package:handy_learn/features/claude_developer/screens/claude_tool_simulator_screen.dart';
+import 'package:handy_learn/features/claude_developer/screens/claude_caching_calculator_screen.dart';
+import 'package:handy_learn/features/claude_developer/screens/claude_developer_topic_detail_screen.dart';
+import 'package:handy_learn/features/claude_developer/models/claude_developer_topic.dart';
 
 void main() {
   testWidgets('ClaudeDeveloperHubScreen renders curriculum modules and launches labs', (WidgetTester tester) async {

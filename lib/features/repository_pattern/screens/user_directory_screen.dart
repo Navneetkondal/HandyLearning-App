@@ -94,7 +94,11 @@ class _UserDirectoryScreenState extends State<UserDirectoryScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) {
+      nameCtrl.dispose();
+      emailCtrl.dispose();
+      roleCtrl.dispose();
+    });
   }
 
   @override

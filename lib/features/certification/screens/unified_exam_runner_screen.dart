@@ -60,7 +60,9 @@ class _UnifiedExamRunnerScreenState extends State<UnifiedExamRunnerScreen> {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
-        setState(() => _secondsRemaining--);
+        if (mounted) {
+          setState(() => _secondsRemaining--);
+        }
       } else {
         _timer?.cancel();
         _submitExam(autoSubmit: true);
@@ -134,7 +136,8 @@ class _UnifiedExamRunnerScreenState extends State<UnifiedExamRunnerScreen> {
       }
     }
 
-    final scorePercentage = ((correct / _questions.length) * 100).round();
+    final totalQ = _questions.isEmpty ? 1 : _questions.length;
+    final scorePercentage = _questions.isEmpty ? 0 : ((correct / totalQ) * 100).round();
     final passed = scorePercentage >= widget.track.passingPercentage;
 
     final breakdown = <String, double>{};
@@ -165,7 +168,14 @@ class _UnifiedExamRunnerScreenState extends State<UnifiedExamRunnerScreen> {
     );
 
     _savedResult = result;
-    _storage?.saveExamResult(result);
+    if (_storage != null) {
+      _storage!.saveExamResult(result);
+    } else {
+      CertificationStorageService.getInstance().then((s) {
+        _storage = s;
+        s.saveExamResult(result);
+      });
+    }
   }
 
   @override
@@ -349,14 +359,19 @@ class _UnifiedExamRunnerScreenState extends State<UnifiedExamRunnerScreen> {
                     final isSelected = selectedOption == optIdx;
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
-                      child: InkWell(
-                        key: Key('option_${_currentIndex}_$optIdx'),
-                        borderRadius: BorderRadius.circular(10),
-                        onTap: () {
-                          setState(() {
-                            _userAnswers[q.id] = optIdx;
-                          });
-                        },
+                      child: Semantics(
+                        inMutuallyExclusiveGroup: true,
+                        selected: isSelected,
+                        button: true,
+                        label: 'Option ${String.fromCharCode(65 + optIdx)}: ${q.options[optIdx]}',
+                        child: InkWell(
+                          key: Key('option_${_currentIndex}_$optIdx'),
+                          borderRadius: BorderRadius.circular(10),
+                          onTap: () {
+                            setState(() {
+                              _userAnswers[q.id] = optIdx;
+                            });
+                          },
                         child: Container(
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
@@ -406,7 +421,8 @@ class _UnifiedExamRunnerScreenState extends State<UnifiedExamRunnerScreen> {
                           ),
                         ),
                       ),
-                    );
+                    ),
+                  );
                   }),
                 ],
               ),

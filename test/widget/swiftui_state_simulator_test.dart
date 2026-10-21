@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/swiftui_track/screens/swiftui_state_simulator_screen.dart';
+import 'package:handy_learn/features/swiftui_track/screens/swiftui_state_simulator_screen.dart';
 
 void main() {
   testWidgets('SwiftUiStateSimulatorScreen exercises @State, @Observable, and @Environment',

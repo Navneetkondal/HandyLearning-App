@@ -102,6 +102,7 @@ class CertificationStorageService {
   static String generateCertificateHash(ExamTrack track, String name, int score) {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toRadixString(16).toUpperCase();
     final nameChecksum = name.hashCode.abs().toRadixString(16).toUpperCase().padLeft(4, '0');
-    return 'FLH-${track.acronym}-$score-$nameChecksum-$timestamp'.substring(0, 24);
+    final raw = 'FLH-${track.acronym}-$score-$nameChecksum-$timestamp';
+    return raw.length >= 24 ? raw.substring(0, 24) : raw;
   }
 }

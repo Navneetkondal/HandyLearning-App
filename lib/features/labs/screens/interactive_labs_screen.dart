@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import '../../claude_developer/screens/claude_agent_loop_simulator_screen.dart';
 import '../../claude_developer/screens/claude_caching_calculator_screen.dart';
 import '../../claude_developer/screens/claude_tool_simulator_screen.dart';
 import '../../flutter_advanced/screens/engine_internals_screen.dart';
 import '../../flutter_advanced/screens/isolates_concurrency_screen.dart';
 import '../../swiftui_track/screens/swiftui_state_simulator_screen.dart';
 import 'bpe_tokenizer_sandbox_screen.dart';
+import 'ios_arc_memory_lab_screen.dart';
+import 'ios_concurrency_race_lab_screen.dart';
 
 /// Interactive Labs Screen: A central hub for runtime sandboxes,
 /// execution simulators, cost calculators, and architecture inspectors.
@@ -17,6 +20,36 @@ class InteractiveLabsScreen extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     final labs = [
+      _LabItem(
+        title: 'Claude Agentic Looping Simulator',
+        subtitle: 'Evaluator-Optimizer, Tool Loop & Orchestrator Swarms',
+        description:
+            'Interactive runtime simulator for Anthropic agent loops: step through Generator ➔ Critic cycles, tool_use ➔ tool_result flows, and circuit breaker guardrails.',
+        icon: Icons.all_inclusive_rounded,
+        badge: 'Agent Architecture',
+        color: const Color(0xFF7C3AED),
+        screen: const ClaudeAgentLoopSimulatorScreen(),
+      ),
+      _LabItem(
+        title: 'iOS Retain Cycle & ARC Simulator',
+        subtitle: 'Reference Counting, Side Tables & Leak Detection',
+        description:
+            'Interactive visual memory graph. Test ViewController closure captures, strong delegates, and target-action timers with [weak self] fixes.',
+        icon: Icons.memory_rounded,
+        badge: 'iOS Memory',
+        color: const Color(0xFF6366F1),
+        screen: const IosArcMemoryLabScreen(),
+      ),
+      _LabItem(
+        title: 'Actor Reentrancy & Race Simulator',
+        subtitle: 'Suspension Points across await & State Integrity',
+        description:
+            'Simulate 10 concurrent async withdrawal requests. Observe how Actors eliminate data races but still corrupt state across await suspension points.',
+        icon: Icons.bolt_rounded,
+        badge: 'Swift Concurrency',
+        color: const Color(0xFF8B5CF6),
+        screen: const IosConcurrencyRaceLabScreen(),
+      ),
       _LabItem(
         title: 'Claude MCP Tool Use Simulator',
         subtitle: '4-Step Tool Execution Loop & JSON Schemas',
@@ -129,7 +162,7 @@ class InteractiveLabsScreen extends StatelessWidget {
                     ),
                     const Spacer(),
                     const Text(
-                      '6 Interactive Sandboxes',
+                      '9 Interactive Sandboxes',
                       style: TextStyle(color: Colors.white70, fontSize: 11.5),
                     ),
                   ],

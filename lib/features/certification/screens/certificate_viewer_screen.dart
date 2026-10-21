@@ -72,7 +72,7 @@ class _CertificateViewerScreenState extends State<CertificateViewerScreen> {
           ),
         ],
       ),
-    );
+    ).then((_) => controller.dispose());
   }
 
   void _copyVerificationCode() {
@@ -160,13 +160,13 @@ class _CertificateViewerScreenState extends State<CertificateViewerScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Text(
+                      Text(
                         'GLOBAL LEARNING HUB CERTIFICATION',
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                           letterSpacing: 2,
-                          color: Color(0xFFD4AF37),
+                          color: isDark ? const Color(0xFFFACC15) : const Color(0xFF92400E),
                         ),
                       ),
                       const SizedBox(height: 8),

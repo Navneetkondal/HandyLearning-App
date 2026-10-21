@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/repository_pattern/cubit/user_directory_cubit.dart';
-import 'package:flutter_learning_hub/features/repository_pattern/cubit/user_directory_state.dart';
-import 'package:flutter_learning_hub/features/repository_pattern/data/datasources/user_mock_datasource.dart';
-import 'package:flutter_learning_hub/features/repository_pattern/data/repositories/user_repository_impl.dart';
+import 'package:handy_learn/features/repository_pattern/cubit/user_directory_cubit.dart';
+import 'package:handy_learn/features/repository_pattern/cubit/user_directory_state.dart';
+import 'package:handy_learn/features/repository_pattern/data/datasources/user_mock_datasource.dart';
+import 'package:handy_learn/features/repository_pattern/data/repositories/user_repository_impl.dart';
 
 void main() {
   group('Repository Pattern & UserDirectoryCubit Tests', () {

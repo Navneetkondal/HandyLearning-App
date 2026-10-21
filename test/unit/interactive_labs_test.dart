@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/labs/screens/bpe_tokenizer_sandbox_screen.dart';
-import 'package:flutter_learning_hub/features/labs/screens/interactive_labs_screen.dart';
+import 'package:handy_learn/features/labs/screens/bpe_tokenizer_sandbox_screen.dart';
+import 'package:handy_learn/features/labs/screens/interactive_labs_screen.dart';
 
 void main() {
   group('Interactive Labs & Sandboxes Tests', () {
@@ -20,8 +20,9 @@ void main() {
 
       expect(find.text('Interactive Labs & Sandboxes'), findsOneWidget);
       expect(find.text('Test, Simulate & Benchmark'), findsOneWidget);
-      expect(find.text('6 Interactive Sandboxes'), findsOneWidget);
+      expect(find.text('9 Interactive Sandboxes'), findsOneWidget);
 
+      expect(find.text('Claude Agentic Looping Simulator'), findsOneWidget);
       expect(find.text('Claude MCP Tool Use Simulator'), findsOneWidget);
       expect(find.text('Prompt Caching 90% ROI Calculator'), findsOneWidget);
       expect(find.text('BPE Tokenizer & Context Explorer'), findsOneWidget);

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_learning_hub/features/cubit_and_state/cubit/counter_cubit.dart';
-import 'package:flutter_learning_hub/features/cubit_and_state/cubit/counter_state.dart';
+import 'package:handy_learn/features/cubit_and_state/cubit/counter_cubit.dart';
+import 'package:handy_learn/features/cubit_and_state/cubit/counter_state.dart';
 
 void main() {
   group('CounterCubit Unit Tests', () {

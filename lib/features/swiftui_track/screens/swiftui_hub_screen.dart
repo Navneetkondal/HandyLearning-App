@@ -9,7 +9,8 @@ import 'swiftui_state_simulator_screen.dart';
 /// Hub screen for the SwiftUI & Modern iOS track.
 /// Features full curriculum from Basic ➔ Intermediate ➔ Advanced ➔ Master.
 class SwiftUiHubScreen extends StatefulWidget {
-  const SwiftUiHubScreen({super.key});
+  final bool hideAppBar;
+  const SwiftUiHubScreen({super.key, this.hideAppBar = false});
 
   @override
   State<SwiftUiHubScreen> createState() => _SwiftUiHubScreenState();
@@ -43,8 +44,10 @@ class _SwiftUiHubScreenState extends State<SwiftUiHubScreen> {
         : swiftUiLessons.where((l) => l.masteryLevel == _selectedTier).toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SwiftUI & Modern iOS Track'),
+      appBar: widget.hideAppBar
+          ? null
+          : AppBar(
+              title: const Text('SwiftUI & Modern iOS Track'),
         actions: [
           IconButton(
             icon: const Icon(Icons.play_circle_outline_rounded),

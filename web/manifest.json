@@ -1,11 +1,11 @@
 {
-    "name": "flutter_learning_hub",
-    "short_name": "flutter_learning_hub",
+    "name": "handyLearn",
+    "short_name": "handyLearn",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "handyLearn - Multi-Platform & AI Engineering Hub",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
