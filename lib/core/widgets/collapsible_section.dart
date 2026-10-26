@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../utils/app_haptics.dart';
 
 class CollapsibleSection extends StatefulWidget {
   final String title;
@@ -30,6 +31,7 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
   }
 
   void _toggle() {
+    AppHaptics.light();
     setState(() {
       _isExpanded = !_isExpanded;
     });
@@ -42,8 +44,9 @@ class _CollapsibleSectionState extends State<CollapsibleSection> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.card(isDark),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border(isDark)),
+        boxShadow: AppColors.cardShadow(isDark),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import 'pressable_scale.dart';
 
 class CategoryGridCard extends StatelessWidget {
   final IconData icon;
@@ -22,14 +23,14 @@ class CategoryGridCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     
-    return InkWell(
+    return PressableScale(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.card(isDark),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border(isDark)),
+          boxShadow: AppColors.cardShadow(isDark),
         ),
         child: Stack(
           children: [

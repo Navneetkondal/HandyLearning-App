@@ -8,6 +8,7 @@ import '../../swiftui_track/screens/swiftui_state_simulator_screen.dart';
 import 'bpe_tokenizer_sandbox_screen.dart';
 import 'ios_arc_memory_lab_screen.dart';
 import 'ios_concurrency_race_lab_screen.dart';
+import 'ios_payment_storekit_lab_screen.dart';
 
 /// Interactive Labs Screen: A central hub for runtime sandboxes,
 /// execution simulators, cost calculators, and architecture inspectors.
@@ -49,6 +50,16 @@ class InteractiveLabsScreen extends StatelessWidget {
         badge: 'Swift Concurrency',
         color: const Color(0xFF8B5CF6),
         screen: const IosConcurrencyRaceLabScreen(),
+      ),
+      _LabItem(
+        title: 'StoreKit 2 & Apple Pay Sandbox',
+        subtitle: 'Async Purchases, JWS Validation & PassKit DPAN',
+        description:
+            'Interactive payment sandbox: simulate StoreKit 2 Product.purchase(), JWS signature validation against Apple Root CA, subscription grace periods, and PassKit Secure Element cryptograms.',
+        icon: Icons.payments_rounded,
+        badge: 'Payment Architecture',
+        color: const Color(0xFF059669),
+        screen: const IosPaymentStoreKitLabScreen(),
       ),
       _LabItem(
         title: 'Claude MCP Tool Use Simulator',

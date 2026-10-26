@@ -22,6 +22,7 @@ void main() {
       expect(find.text('Claude Agentic Looping Simulator'), findsOneWidget);
       expect(find.text('iOS Retain Cycle & ARC Simulator'), findsOneWidget);
       expect(find.text('Actor Reentrancy & Race Simulator'), findsOneWidget);
+      expect(find.text('StoreKit 2 & Apple Pay Sandbox'), findsOneWidget);
 
       // Scroll down to see subsequent lab cards
       await tester.drag(find.byType(ListView).first, const Offset(0, -300));

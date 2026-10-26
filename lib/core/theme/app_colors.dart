@@ -77,4 +77,40 @@ class AppColors {
   static Color surface(Color accent, bool isDark) {
     return accent.withValues(alpha: isDark ? 0.15 : 0.08);
   }
+
+  /// Ambient multi-stop elevation shadow for modern cards
+  static List<BoxShadow> cardShadow(bool isDark) {
+    if (isDark) {
+      return [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.35),
+          blurRadius: 8,
+          offset: const Offset(0, 2),
+        ),
+      ];
+    }
+    return [
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.04),
+        blurRadius: 6,
+        offset: const Offset(0, 2),
+      ),
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.02),
+        blurRadius: 2,
+        offset: const Offset(0, 1),
+      ),
+    ];
+  }
+
+  /// Subtle colored glow for active cards and accent hero blocks
+  static List<BoxShadow> glowShadow(Color color, bool isDark) {
+    return [
+      BoxShadow(
+        color: color.withValues(alpha: isDark ? 0.25 : 0.15),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      ),
+    ];
+  }
 }

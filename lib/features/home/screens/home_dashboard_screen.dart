@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/theme_cubit.dart';
+import '../../../core/utils/app_haptics.dart';
+import '../../../core/widgets/pressable_scale.dart';
 import '../../ai_engineering/screens/ai_and_certifications_hub_screen.dart';
 import '../../coding_dsa/screens/coding_dsa_hub_screen.dart';
 import '../../ios_senior_prep/data/ios_prep_master_hierarchy_data.dart';
@@ -94,10 +97,13 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 IconButton(
                   icon: const Icon(Icons.search_rounded),
                   tooltip: 'Search Topics',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
-                  ),
+                  onPressed: () {
+                    AppHaptics.light();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
+                    );
+                  },
                 ),
                 BlocBuilder<ThemeCubit, ThemeMode>(
                   builder: (context, themeMode) {
@@ -107,7 +113,10 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                         color: isDark ? Colors.amber : const Color(0xFF334155),
                       ),
                       tooltip: isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode',
-                      onPressed: () => context.read<ThemeCubit>().toggleTheme(),
+                      onPressed: () {
+                        AppHaptics.light();
+                        context.read<ThemeCubit>().toggleTheme();
+                      },
                     );
                   },
                 ),
@@ -116,7 +125,11 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           : null,
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedTab,
-        onDestinationSelected: (i) => setState(() => _selectedTab = i),
+        animationDuration: const Duration(milliseconds: 280),
+        onDestinationSelected: (i) {
+          AppHaptics.selection();
+          setState(() => _selectedTab = i);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -277,11 +290,15 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
           button: true,
           label: 'Search topics, domains, interview Q&A',
           hint: 'Double tap to open global search',
-          child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
-            ),
+          child: PressableScale(
+            scaleFactor: 0.98,
+            onTap: () {
+              AppHaptics.light();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PrepGlobalSearchScreen()),
+              );
+            },
             child: Container(
               constraints: const BoxConstraints(minHeight: 46),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -289,13 +306,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
                 color: _card(isDark),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: _border(isDark)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-                    blurRadius: 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+                boxShadow: AppColors.cardShadow(isDark),
               ),
               child: Row(
                 children: [
@@ -352,14 +363,17 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       child: Semantics(
         button: true,
         label: 'Search suggestion: $query',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PrepGlobalSearchScreen(initialQuery: query),
-            ),
-          ),
+        child: PressableScale(
+          scaleFactor: 0.95,
+          onTap: () {
+            AppHaptics.selection();
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PrepGlobalSearchScreen(initialQuery: query),
+              ),
+            );
+          },
           child: Container(
             constraints: const BoxConstraints(minHeight: 48),
             alignment: Alignment.center,
@@ -368,6 +382,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: _border(isDark)),
+              boxShadow: AppColors.cardShadow(isDark),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -399,28 +414,29 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         final topic = ps.activeTopic;
         final hasStarted = ps.hasStarted;
 
-        return Container(
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: _primary.withValues(alpha: 0.3),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
+        return PressableScale(
+          scaleFactor: 0.98,
+          onTap: () {
+            AppHaptics.medium();
+            _navigateToActivePrep();
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF3730A3), Color(0xFF4F46E5)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
               borderRadius: BorderRadius.circular(16),
-              onTap: () => _navigateToActivePrep(),
-              child: MergeSemantics(
+              boxShadow: [
+                BoxShadow(
+                  color: _primary.withValues(alpha: 0.35),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: MergeSemantics(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                 child: Column(
@@ -556,7 +572,6 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               ),
             ),
           ),
-        ),
         );
       },
     );
@@ -647,35 +662,36 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
       child: Semantics(
         button: true,
         label: label,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(10),
-            onTap: onTap,
-            child: Container(
-              constraints: const BoxConstraints(minHeight: 48),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: _card(isDark),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _border(isDark)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, size: 16, color: color),
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _text(isDark),
-                    ),
+        child: PressableScale(
+          scaleFactor: 0.95,
+          onTap: () {
+            AppHaptics.light();
+            onTap();
+          },
+          child: Container(
+            constraints: const BoxConstraints(minHeight: 48),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: _card(isDark),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _border(isDark)),
+              boxShadow: AppColors.cardShadow(isDark),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: 6),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: _text(isDark),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -693,6 +709,7 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
         color: _card(isDark),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _border(isDark)),
+        boxShadow: AppColors.cardShadow(isDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -730,9 +747,12 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               Semantics(
                 button: true,
                 label: _challengeRevealed ? 'Hide daily challenge answer' : 'Reveal daily challenge answer',
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(8),
-                  onTap: () => setState(() => _challengeRevealed = !_challengeRevealed),
+                child: PressableScale(
+                  scaleFactor: 0.92,
+                  onTap: () {
+                    AppHaptics.light();
+                    setState(() => _challengeRevealed = !_challengeRevealed);
+                  },
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                     child: Center(
@@ -763,48 +783,57 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
               color: _text(isDark),
             ),
           ),
-          if (_challengeRevealed) ...[
-            const SizedBox(height: 10),
-            Semantics(
-              container: true,
-              liveRegion: true,
-              label: 'Daily architectural challenge answer revealed',
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
-                  ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF10B981)),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Staff Calibration Signal',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeInOutCubic,
+            child: _challengeRevealed
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      Semantics(
+                        container: true,
+                        liveRegion: true,
+                        label: 'Daily architectural challenge answer revealed',
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.verified_rounded, size: 14, color: Color(0xFF10B981)),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Staff Calibration Signal',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: isDark ? const Color(0xFF34D399) : const Color(0xFF059669),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                '`unowned` assumes memory is never nil. If the VC pops while network is in flight, referencing `unowned self` crashes instantly with EXC_BAD_ACCESS. `[weak self]` safely zeroes out into `nil`, allowing safe `guard let self else { return }` early exit.',
+                                style: TextStyle(fontSize: 12, height: 1.4, color: _sub(isDark)),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      '`unowned` assumes memory is never nil. If the VC pops while network is in flight, referencing `unowned self` crashes instantly with EXC_BAD_ACCESS. `[weak self]` safely zeroes out into `nil`, allowing safe `guard let self else { return }` early exit.',
-                      style: TextStyle(fontSize: 12, height: 1.4, color: _sub(isDark)),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
+                      ),
+                    ],
+                  )
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );
@@ -912,59 +941,60 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
     required bool isDark,
     required VoidCallback onTap,
   }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: _card(isDark),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _border(isDark)),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: isDark ? 0.2 : 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, color: color, size: 22),
+    return PressableScale(
+      scaleFactor: 0.94,
+      onTap: () {
+        AppHaptics.light();
+        onTap();
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: _card(isDark),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _border(isDark)),
+          boxShadow: AppColors.cardShadow(isDark),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: isDark ? 0.2 : 0.1),
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 8),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: _text(isDark),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: FontWeight.w500,
-                    color: _sub(isDark),
-                  ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: _text(isDark),
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 2),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  color: _sub(isDark),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1057,72 +1087,71 @@ class _HomeDashboardScreenState extends State<HomeDashboardScreen> {
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: () {
-            ps.recordTopicStudied(topic.id);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => PrepTopicDetailScreen(
-                  topic: topic,
-                  domainTitle: domain.title,
-                  domainNumber: domain.domainNumber,
+      child: PressableScale(
+        scaleFactor: 0.98,
+        onTap: () {
+          AppHaptics.light();
+          ps.recordTopicStudied(topic.id);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PrepTopicDetailScreen(
+                topic: topic,
+                domainTitle: domain.title,
+                domainNumber: domain.domainNumber,
+              ),
+            ),
+          );
+        },
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: _card(isDark),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: _border(isDark)),
+            boxShadow: AppColors.cardShadow(isDark),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      topic.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _text(isDark)),
+                    ),
+                    Text(
+                      'D${domain.domainNumber.toString().padLeft(2, '0')} • ${domain.title}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 11, color: _sub(isDark)),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: _card(isDark),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: _border(isDark)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        topic.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _text(isDark)),
-                      ),
-                      Text(
-                        'D${domain.domainNumber.toString().padLeft(2, '0')} • ${domain.title}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(fontSize: 11, color: _sub(isDark)),
-                      ),
-                    ],
-                  ),
+                child: Text(
+                  status.label,
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    status.label,
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: statusColor),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Icon(Icons.chevron_right_rounded, size: 16, color: _sub(isDark)),
-              ],
-            ),
+              ),
+              const SizedBox(width: 6),
+              Icon(Icons.chevron_right_rounded, size: 16, color: _sub(isDark)),
+            ],
           ),
         ),
       ),
